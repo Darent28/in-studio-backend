@@ -30,20 +30,17 @@ public class UserInput {
 
     private LocalDate birthdate;
 
-    private String gender;
-
     public UserInput() {
     }
 
     public UserInput(String firstName, String lastName, String email, String password,
-                     String phone, LocalDate birthdate, String gender) {
+                     String phone, LocalDate birthdate) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
         this.phone = phone;
         this.birthdate = birthdate;
-        this.gender = gender;
     }
 
     public String getFirstName() {
@@ -94,11 +91,4 @@ public class UserInput {
         this.birthdate = birthdate;
     }
 
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
 }

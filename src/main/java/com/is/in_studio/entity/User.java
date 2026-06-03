@@ -33,10 +33,6 @@ public class User implements Serializable {
     @Column(name = "birthdate")
     private LocalDate birthdate;
 
-    @Column(name = "gender", columnDefinition = "gender_type")
-    @Enumerated(EnumType.STRING)
-    private GenderType gender;
-
     @Column(name = "role", nullable = false, columnDefinition = "user_role")
     @Enumerated(EnumType.STRING)
     private UserRole role;
@@ -57,14 +53,13 @@ public class User implements Serializable {
     }
 
     public User(String email, String passwordHash, String firstName, String lastName,
-                String phone, LocalDate birthdate, GenderType gender) {
+                String phone, LocalDate birthdate) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
         this.birthdate = birthdate;
-        this.gender = gender;
         this.role = UserRole.CLIENT;
         this.active = true;
         this.emailVerified = false;
@@ -128,14 +123,6 @@ public class User implements Serializable {
         this.birthdate = birthdate;
     }
 
-    public GenderType getGender() {
-        return gender;
-    }
-
-    public void setGender(GenderType gender) {
-        this.gender = gender;
-    }
-
     public UserRole getRole() {
         return role;
     }
@@ -174,10 +161,6 @@ public class User implements Serializable {
 
     public void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public enum GenderType {
-        M, F, OTHER
     }
 
     public enum UserRole {

@@ -7,7 +7,6 @@ public record UserResponseDto(
     String firstName,
     String lastName,
     String email,
-    String gender,
     String role,
     Boolean emailVerified
 ) {
@@ -18,7 +17,6 @@ public record UserResponseDto(
             user.getFirstName(),
             user.getLastName(),
             user.getEmail(),
-            user.getGender() != null ? user.getGender().name() : null,
             user.getRole() != null ? user.getRole().name() : null,
             user.getEmailVerified()
         );

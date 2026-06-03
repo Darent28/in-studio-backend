@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.is.in_studio.domain.dto.UserResponseDto;
 import com.is.in_studio.domain.input.UserInput;
 import com.is.in_studio.entity.User;
-import com.is.in_studio.entity.User.GenderType;
 import com.is.in_studio.exception.CustomExceptions.NotFoundException;
 import com.is.in_studio.exception.CustomExceptions.ServerErrorException;
 
@@ -34,24 +33,16 @@ public class UserService {
     @Transactional
     public UserResponseDto postUser(UserInput userInput) {
         try {
-            GenderType gender = userInput.getGender() != null
-                ? GenderType.valueOf(userInput.getGender())
-                : null;
-
             User user = new User(
                 userInput.getEmail(),
                 passwordEncoder.encode(userInput.getPassword()),
                 userInput.getFirstName(),
                 userInput.getLastName(),
                 userInput.getPhone(),
-                userInput.getBirthdate(),
-                gender
+                userInput.getBirthdate()
             );
             userRepository.save(user);
             return UserResponseDto.fromEntity(user);
-        } catch (IllegalArgumentException e) {
-            throw new com.is.in_studio.exception.CustomExceptions.ProcessServiceException(
-                "Invalid gender value. Allowed: M, F, OTHER");
         } catch (Exception e) {
             log.error("Failed to create user", e);
             throw new ServerErrorException("Failed to create user. Please try again later.");
