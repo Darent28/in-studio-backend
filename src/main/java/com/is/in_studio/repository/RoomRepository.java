@@ -1,0 +1,10 @@
+package com.is.in_studio.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.is.in_studio.entity.Room;
+
+@Repository
+public interface RoomRepository extends JpaRepository<Room, Integer> {
+}
