@@ -278,6 +278,25 @@ CREATE INDEX IF NOT EXISTS idx_payment_membership ON payment (membership_id);;
 CREATE INDEX IF NOT EXISTS idx_payment_status     ON payment (status) WHERE status = 'PENDING';;
 
 -- ============================================================
+-- FUNCTION + TRIGGER: delete all expired tokens before a new one is inserted
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION trg_delete_expired_tokens()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM email_confirmation_token
+    WHERE expires_at < NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;;
+
+DROP TRIGGER IF EXISTS trg_ect_cleanup_expired ON email_confirmation_token;;
+CREATE TRIGGER trg_ect_cleanup_expired
+    BEFORE INSERT ON email_confirmation_token
+    FOR EACH STATEMENT
+    EXECUTE FUNCTION trg_delete_expired_tokens();;
+
+-- ============================================================
 -- FUNCTION: auto-update updated_at on "user"
 -- ============================================================
 
