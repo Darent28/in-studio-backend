@@ -50,11 +50,7 @@ public class AuthService {
         User user = userRepository.findByEmail(input.getEmail())
             .orElseThrow(() -> new ProcessServiceException("User not found."));
 
-        if (!Boolean.TRUE.equals(user.getEmailVerified())) {
-            throw new ProcessServiceException("Please confirm your email before logging in.");
-        }
-
-        String token = jwtUtil.generateToken(user.getEmail(), user.getUserId(), user.getFirstName());
+String token = jwtUtil.generateToken(user.getEmail(), user.getUserId(), user.getFirstName());
         Instant expiresAt = Instant.now().plusMillis(jwtProperties.getExpiration());
 
         return new AuthResponseDto(token, expiresAt, UserResponseDto.fromEntity(user));
@@ -69,7 +65,10 @@ public class AuthService {
         String token = jwtUtil.generateToken(user.getEmail(), user.getUserId(), user.getFirstName());
         Instant expiresAt = Instant.now().plusMillis(jwtProperties.getExpiration());
 
-        emailConfirmationService.sendConfirmationEmail(user);
+        try {
+            emailConfirmationService.sendConfirmationEmail(user);
+        } catch (Exception ignored) {
+        }
 
         return new AuthResponseDto(token, expiresAt, created);
     }

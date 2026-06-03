@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "\"user\"")
@@ -35,7 +37,8 @@ public class User implements Serializable {
 
     @Column(name = "role", nullable = false, columnDefinition = "user_role")
     @Enumerated(EnumType.STRING)
-    private UserRole role;
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    private UserRole role = UserRole.CLIENT;
 
     @Column(name = "active", nullable = false)
     private Boolean active = true;
@@ -44,10 +47,22 @@ public class User implements Serializable {
     private Boolean emailVerified = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private OffsetDateTime createdAt;
+    private OffsetDateTime createdAt = OffsetDateTime.now();
 
     @Column(name = "updated_at", nullable = false)
-    private OffsetDateTime updatedAt;
+    private OffsetDateTime updatedAt = OffsetDateTime.now();
+
+    @PrePersist
+    protected void onCreate() {
+        OffsetDateTime now = OffsetDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = OffsetDateTime.now();
+    }
 
     public User() {
     }
