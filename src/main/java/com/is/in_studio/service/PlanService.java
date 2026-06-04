@@ -8,11 +8,9 @@ import org.springframework.stereotype.Service;
 
 import com.is.in_studio.domain.dto.PlanResponseDto;
 import com.is.in_studio.domain.input.PlanInput;
-import com.is.in_studio.entity.Discipline;
 import com.is.in_studio.entity.Plan;
 import com.is.in_studio.exception.CustomExceptions.NotFoundException;
 import com.is.in_studio.exception.CustomExceptions.ServerErrorException;
-import com.is.in_studio.repository.DisciplineRepository;
 import com.is.in_studio.repository.PlanRepository;
 
 import jakarta.transaction.Transactional;
@@ -23,11 +21,9 @@ public class PlanService {
     private static final Logger log = LoggerFactory.getLogger(PlanService.class);
 
     private final PlanRepository planRepository;
-    private final DisciplineRepository disciplineRepository;
 
-    public PlanService(PlanRepository planRepository, DisciplineRepository disciplineRepository) {
+    public PlanService(PlanRepository planRepository) {
         this.planRepository = planRepository;
-        this.disciplineRepository = disciplineRepository;
     }
 
     public List<PlanResponseDto> getAll() {
@@ -92,13 +88,5 @@ public class PlanService {
         plan.setDurationDays(input.getDurationDays());
         plan.setType(input.getType());
         plan.setActive(input.getActive() != null ? input.getActive() : true);
-
-        if (input.getDisciplineId() != null) {
-            Discipline discipline = disciplineRepository.findById(input.getDisciplineId())
-                .orElseThrow(() -> new NotFoundException("Discipline not found with id: " + input.getDisciplineId()));
-            plan.setDiscipline(discipline);
-        } else {
-            plan.setDiscipline(null);
-        }
     }
 }

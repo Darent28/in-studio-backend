@@ -30,8 +30,6 @@ public class PlanInput {
     @NotNull(message = "Type is required")
     private PlanType type;
 
-    private Integer disciplineId;
-
     private Boolean active = true;
 
     public PlanInput() {
@@ -51,9 +49,6 @@ public class PlanInput {
 
     public PlanType getType() { return type; }
     public void setType(PlanType type) { this.type = type; }
-
-    public Integer getDisciplineId() { return disciplineId; }
-    public void setDisciplineId(Integer disciplineId) { this.disciplineId = disciplineId; }
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }

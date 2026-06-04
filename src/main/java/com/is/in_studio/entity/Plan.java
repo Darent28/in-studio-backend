@@ -34,10 +34,6 @@ public class Plan implements Serializable {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private PlanType type;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "discipline_id")
-    private Discipline discipline;
-
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
@@ -61,9 +57,6 @@ public class Plan implements Serializable {
 
     public PlanType getType() { return type; }
     public void setType(PlanType type) { this.type = type; }
-
-    public Discipline getDiscipline() { return discipline; }
-    public void setDiscipline(Discipline discipline) { this.discipline = discipline; }
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }

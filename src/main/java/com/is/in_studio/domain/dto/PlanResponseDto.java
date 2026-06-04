@@ -11,8 +11,6 @@ public record PlanResponseDto(
     BigDecimal price,
     Integer durationDays,
     String type,
-    Integer disciplineId,
-    String disciplineName,
     Boolean active
 ) {
 
@@ -24,8 +22,6 @@ public record PlanResponseDto(
             plan.getPrice(),
             plan.getDurationDays(),
             plan.getType() != null ? plan.getType().name() : null,
-            plan.getDiscipline() != null ? plan.getDiscipline().getDisciplineId() : null,
-            plan.getDiscipline() != null ? plan.getDiscipline().getName() : null,
             plan.getActive()
         );
     }
