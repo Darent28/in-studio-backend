@@ -8,7 +8,10 @@ public record RoomResponseDto(
     Integer capacity,
     String location,
     String equipment,
-    Boolean active
+    Boolean active,
+    Integer layoutRows,
+    Integer layoutCols,
+    String layoutData
 ) {
 
     public static RoomResponseDto fromEntity(Room room) {
@@ -18,7 +21,10 @@ public record RoomResponseDto(
             room.getCapacity(),
             room.getLocation(),
             room.getEquipment(),
-            room.getActive()
+            room.getActive(),
+            room.getLayoutRows(),
+            room.getLayoutCols(),
+            room.getLayoutData()
         );
     }
 }

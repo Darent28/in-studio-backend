@@ -15,10 +15,11 @@ public class RoomInput {
     private Integer capacity;
 
     private String location;
-
     private String equipment;
-
     private Boolean active = true;
+    private Integer layoutRows = 0;
+    private Integer layoutCols = 0;
+    private String layoutData;
 
     public RoomInput() {
     }
@@ -37,4 +38,13 @@ public class RoomInput {
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
+    public Integer getLayoutRows() { return layoutRows; }
+    public void setLayoutRows(Integer layoutRows) { this.layoutRows = layoutRows; }
+
+    public Integer getLayoutCols() { return layoutCols; }
+    public void setLayoutCols(Integer layoutCols) { this.layoutCols = layoutCols; }
+
+    public String getLayoutData() { return layoutData; }
+    public void setLayoutData(String layoutData) { this.layoutData = layoutData; }
 }

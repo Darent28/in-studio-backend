@@ -28,6 +28,15 @@ public class Room implements Serializable {
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
+    @Column(name = "layout_rows", nullable = false)
+    private Integer layoutRows = 0;
+
+    @Column(name = "layout_cols", nullable = false)
+    private Integer layoutCols = 0;
+
+    @Column(name = "layout_data", columnDefinition = "TEXT")
+    private String layoutData;
+
     public Room() {
     }
 
@@ -48,4 +57,13 @@ public class Room implements Serializable {
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
+    public Integer getLayoutRows() { return layoutRows; }
+    public void setLayoutRows(Integer layoutRows) { this.layoutRows = layoutRows; }
+
+    public Integer getLayoutCols() { return layoutCols; }
+    public void setLayoutCols(Integer layoutCols) { this.layoutCols = layoutCols; }
+
+    public String getLayoutData() { return layoutData; }
+    public void setLayoutData(String layoutData) { this.layoutData = layoutData; }
 }

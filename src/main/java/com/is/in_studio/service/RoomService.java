@@ -83,5 +83,8 @@ public class RoomService {
         room.setLocation(input.getLocation());
         room.setEquipment(input.getEquipment());
         room.setActive(input.getActive() != null ? input.getActive() : true);
+        room.setLayoutRows(input.getLayoutRows() != null ? input.getLayoutRows() : 0);
+        room.setLayoutCols(input.getLayoutCols() != null ? input.getLayoutCols() : 0);
+        room.setLayoutData(input.getLayoutData());
     }
 }

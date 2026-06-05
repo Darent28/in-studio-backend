@@ -87,6 +87,10 @@ CREATE TABLE IF NOT EXISTS room (
 
 COMMENT ON TABLE room IS 'Physical rooms or studios where classes take place';;
 
+ALTER TABLE room ADD COLUMN IF NOT EXISTS layout_rows INT NOT NULL DEFAULT 0;;
+ALTER TABLE room ADD COLUMN IF NOT EXISTS layout_cols INT NOT NULL DEFAULT 0;;
+ALTER TABLE room ADD COLUMN IF NOT EXISTS layout_data TEXT;;
+
 -- ============================================================
 -- TABLE: "user" (quoted — reserved word in PostgreSQL)
 -- ============================================================
