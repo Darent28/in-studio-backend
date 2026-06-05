@@ -43,6 +43,9 @@ public class ClassSession implements Serializable {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private SessionStatus status = SessionStatus.SCHEDULED;
 
+    @Column(name = "title", length = 100)
+    private String title;
+
     @Column(name = "notes")
     private String notes;
 
@@ -80,6 +83,9 @@ public class ClassSession implements Serializable {
 
     public SessionStatus getStatus() { return status; }
     public void setStatus(SessionStatus status) { this.status = status; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }

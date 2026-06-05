@@ -19,6 +19,7 @@ public record ClassSessionResponseDto(
     String endTime,
     List<String> days,
     Integer scheduledCount,
+    String title,
     String status,
     String notes,
     OffsetDateTime createdAt
@@ -38,6 +39,7 @@ public record ClassSessionResponseDto(
             s.getEndTime()   != null ? s.getEndTime().format(TIME_FMT)   : null,
             bitmaskToDays(s.getDaysOfWeek() != null ? s.getDaysOfWeek() : 0),
             s.getScheduledCount(),
+            s.getTitle(),
             s.getStatus() != null ? s.getStatus().name() : null,
             s.getNotes(),
             s.getCreatedAt()

@@ -105,6 +105,7 @@ public class ClassSessionService {
         session.setStartTime(LocalTime.parse(input.getStartTime(), DateTimeFormatter.ofPattern("HH:mm")));
         session.setEndTime(LocalTime.parse(input.getEndTime(), DateTimeFormatter.ofPattern("HH:mm")));
         session.setDaysOfWeek(daysToBitmask(input.getDays()));
+        session.setTitle(input.getTitle());
         session.setNotes(input.getNotes());
         if (input.getStatus() != null) session.setStatus(input.getStatus());
     }

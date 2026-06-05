@@ -27,6 +27,8 @@ public class ClassSessionInput {
 
     private SessionStatus status = SessionStatus.SCHEDULED;
 
+    private String title;
+
     private String notes;
 
     public ClassSessionInput() {
@@ -49,6 +51,9 @@ public class ClassSessionInput {
 
     public SessionStatus getStatus() { return status; }
     public void setStatus(SessionStatus status) { this.status = status; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
