@@ -1,6 +1,6 @@
 package com.is.in_studio.domain.input;
 
-import java.time.OffsetDateTime;
+import java.util.List;
 
 import com.is.in_studio.entity.ClassSession.SessionStatus;
 
@@ -9,24 +9,21 @@ import jakarta.validation.constraints.NotNull;
 
 public class ClassSessionInput {
 
-    @NotNull(message = "Discipline is required")
-    private Integer disciplineId;
-
     @NotNull(message = "Instructor is required")
+    @Min(value = 1, message = "Please select an instructor")
     private Integer instructorId;
 
     @NotNull(message = "Room is required")
+    @Min(value = 1, message = "Please select a room")
     private Integer roomId;
 
-    @NotNull(message = "Start datetime is required")
-    private OffsetDateTime startDatetime;
+    @NotNull(message = "Start time is required")
+    private String startTime;
 
-    @NotNull(message = "End datetime is required")
-    private OffsetDateTime endDatetime;
+    @NotNull(message = "End time is required")
+    private String endTime;
 
-    @NotNull(message = "Capacity is required")
-    @Min(value = 1, message = "Capacity must be at least 1")
-    private Integer capacity;
+    private List<String> days = new java.util.ArrayList<>();
 
     private SessionStatus status = SessionStatus.SCHEDULED;
 
@@ -35,23 +32,20 @@ public class ClassSessionInput {
     public ClassSessionInput() {
     }
 
-    public Integer getDisciplineId() { return disciplineId; }
-    public void setDisciplineId(Integer disciplineId) { this.disciplineId = disciplineId; }
-
     public Integer getInstructorId() { return instructorId; }
     public void setInstructorId(Integer instructorId) { this.instructorId = instructorId; }
 
     public Integer getRoomId() { return roomId; }
     public void setRoomId(Integer roomId) { this.roomId = roomId; }
 
-    public OffsetDateTime getStartDatetime() { return startDatetime; }
-    public void setStartDatetime(OffsetDateTime startDatetime) { this.startDatetime = startDatetime; }
+    public String getStartTime() { return startTime; }
+    public void setStartTime(String startTime) { this.startTime = startTime; }
 
-    public OffsetDateTime getEndDatetime() { return endDatetime; }
-    public void setEndDatetime(OffsetDateTime endDatetime) { this.endDatetime = endDatetime; }
+    public String getEndTime() { return endTime; }
+    public void setEndTime(String endTime) { this.endTime = endTime; }
 
-    public Integer getCapacity() { return capacity; }
-    public void setCapacity(Integer capacity) { this.capacity = capacity; }
+    public List<String> getDays() { return days; }
+    public void setDays(List<String> days) { this.days = days; }
 
     public SessionStatus getStatus() { return status; }
     public void setStatus(SessionStatus status) { this.status = status; }

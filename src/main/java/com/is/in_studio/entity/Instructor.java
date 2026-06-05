@@ -14,17 +14,9 @@ public class Instructor implements Serializable {
     @Column(name = "instructor_id")
     private Integer instructorId;
 
-    @Column(name = "first_name", nullable = false, length = 80)
-    private String firstName;
-
-    @Column(name = "last_name", nullable = false, length = 80)
-    private String lastName;
-
-    @Column(name = "email", unique = true, length = 150)
-    private String email;
-
-    @Column(name = "phone", length = 20)
-    private String phone;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(name = "bio")
     private String bio;
@@ -52,17 +44,8 @@ public class Instructor implements Serializable {
     public Integer getInstructorId() { return instructorId; }
     public void setInstructorId(Integer instructorId) { this.instructorId = instructorId; }
 
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }

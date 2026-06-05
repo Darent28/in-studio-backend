@@ -10,7 +10,12 @@
 -- DROP REMOVED COLUMNS / TYPES (idempotent)
 -- ============================================================
 
-ALTER TABLE "user" DROP COLUMN IF EXISTS gender;;
+ALTER TABLE "user"        DROP COLUMN IF EXISTS gender;;
+ALTER TABLE instructor    DROP COLUMN IF EXISTS first_name;;
+ALTER TABLE instructor    DROP COLUMN IF EXISTS last_name;;
+ALTER TABLE instructor    DROP COLUMN IF EXISTS email;;
+ALTER TABLE instructor    DROP COLUMN IF EXISTS phone;;
+ALTER TABLE class_session DROP COLUMN IF EXISTS capacity;;
 DROP TYPE IF EXISTS gender_type;;
 
 -- ============================================================
@@ -59,6 +64,13 @@ CREATE TABLE IF NOT EXISTS instructor (
 );;
 
 COMMENT ON TABLE instructor IS 'Coaches / trainers that lead class sessions';;
+
+ALTER TABLE instructor ADD COLUMN IF NOT EXISTS bio         TEXT;;
+ALTER TABLE instructor ADD COLUMN IF NOT EXISTS specialty   VARCHAR(100);;
+ALTER TABLE instructor ADD COLUMN IF NOT EXISTS photo_url   VARCHAR(255);;
+ALTER TABLE instructor ADD COLUMN IF NOT EXISTS active      BOOLEAN      NOT NULL DEFAULT TRUE;;
+ALTER TABLE instructor ADD COLUMN IF NOT EXISTS created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW();;
+ALTER TABLE instructor ADD COLUMN IF NOT EXISTS user_id     BIGINT       REFERENCES "user" (user_id) ON DELETE SET NULL;;
 
 -- ============================================================
 -- TABLE: room
@@ -167,47 +179,25 @@ CREATE INDEX IF NOT EXISTS idx_membership_status ON membership (status) WHERE st
 
 CREATE TABLE IF NOT EXISTS class_session (
     session_id      BIGINT          GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    discipline_id   INT             NOT NULL REFERENCES discipline (discipline_id)
-                                        ON DELETE RESTRICT,
     instructor_id   INT             NOT NULL REFERENCES instructor (instructor_id)
                                         ON DELETE RESTRICT,
     room_id         INT             NOT NULL REFERENCES room (room_id)
                                         ON DELETE RESTRICT,
-    start_datetime  TIMESTAMPTZ     NOT NULL,
-    end_datetime    TIMESTAMPTZ     NOT NULL,
-    capacity        INT             NOT NULL CHECK (capacity > 0),
-    booked_count    INT             NOT NULL DEFAULT 0 CHECK (booked_count >= 0),
+    start_time      TIME            NOT NULL,
+    end_time        TIME            NOT NULL,
+    days_of_week    SMALLINT        NOT NULL DEFAULT 0,
+    scheduled_count INT             NOT NULL DEFAULT 0 CHECK (scheduled_count >= 0),
     status          session_status  NOT NULL DEFAULT 'SCHEDULED',
     notes           TEXT,
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
 
-    CONSTRAINT chk_session_times CHECK (end_datetime > start_datetime)
+    CONSTRAINT chk_session_times CHECK (end_time > start_time)
 );;
 
-COMMENT ON TABLE class_session IS 'Scheduled class instances on the calendar';;
+COMMENT ON TABLE class_session IS 'Scheduled recurring class sessions with day/time pattern';;
 
-CREATE INDEX IF NOT EXISTS idx_session_start      ON class_session (start_datetime);;
-CREATE INDEX IF NOT EXISTS idx_session_discipline ON class_session (discipline_id);;
 CREATE INDEX IF NOT EXISTS idx_session_instructor ON class_session (instructor_id);;
-
--- Prevent overlapping sessions in the same room (exclusion constraint)
-CREATE EXTENSION IF NOT EXISTS btree_gist;;
-
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint WHERE conname = 'excl_room_no_overlap'
-    ) THEN
-        ALTER TABLE class_session
-            ADD CONSTRAINT excl_room_no_overlap
-            EXCLUDE USING GIST (
-                room_id WITH =,
-                TSTZRANGE(start_datetime, end_datetime) WITH &&
-            )
-            WHERE (status <> 'CANCELLED');
-    END IF;
-END
-$$;;
+CREATE INDEX IF NOT EXISTS idx_session_room       ON class_session (room_id);;
 
 -- ============================================================
 -- TABLE: booking

@@ -11,6 +11,6 @@ import com.is.in_studio.entity.ClassSession;
 @Repository
 public interface ClassSessionRepository extends JpaRepository<ClassSession, Long> {
 
-    @Query("SELECT s FROM ClassSession s JOIN FETCH s.discipline JOIN FETCH s.instructor JOIN FETCH s.room")
+    @Query("SELECT s FROM ClassSession s JOIN FETCH s.instructor i JOIN FETCH i.user JOIN FETCH s.room")
     List<ClassSession> findAllWithDetails();
 }

@@ -1,6 +1,7 @@
 package com.is.in_studio.entity;
 
 import java.io.Serializable;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -18,10 +19,6 @@ public class ClassSession implements Serializable {
     private Long sessionId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "discipline_id", nullable = false)
-    private Discipline discipline;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "instructor_id", nullable = false)
     private Instructor instructor;
 
@@ -29,17 +26,17 @@ public class ClassSession implements Serializable {
     @JoinColumn(name = "room_id", nullable = false)
     private Room room;
 
-    @Column(name = "start_datetime", nullable = false)
-    private OffsetDateTime startDatetime;
+    @Column(name = "start_time", nullable = false)
+    private LocalTime startTime;
 
-    @Column(name = "end_datetime", nullable = false)
-    private OffsetDateTime endDatetime;
+    @Column(name = "end_time", nullable = false)
+    private LocalTime endTime;
 
-    @Column(name = "capacity", nullable = false)
-    private Integer capacity;
+    @Column(name = "days_of_week", nullable = false)
+    private Integer daysOfWeek = 0;
 
-    @Column(name = "booked_count", nullable = false)
-    private Integer bookedCount = 0;
+    @Column(name = "scheduled_count", nullable = false)
+    private Integer scheduledCount = 0;
 
     @Column(name = "status", nullable = false, columnDefinition = "session_status")
     @Enumerated(EnumType.STRING)
@@ -63,26 +60,23 @@ public class ClassSession implements Serializable {
     public Long getSessionId() { return sessionId; }
     public void setSessionId(Long sessionId) { this.sessionId = sessionId; }
 
-    public Discipline getDiscipline() { return discipline; }
-    public void setDiscipline(Discipline discipline) { this.discipline = discipline; }
-
     public Instructor getInstructor() { return instructor; }
     public void setInstructor(Instructor instructor) { this.instructor = instructor; }
 
     public Room getRoom() { return room; }
     public void setRoom(Room room) { this.room = room; }
 
-    public OffsetDateTime getStartDatetime() { return startDatetime; }
-    public void setStartDatetime(OffsetDateTime startDatetime) { this.startDatetime = startDatetime; }
+    public LocalTime getStartTime() { return startTime; }
+    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
 
-    public OffsetDateTime getEndDatetime() { return endDatetime; }
-    public void setEndDatetime(OffsetDateTime endDatetime) { this.endDatetime = endDatetime; }
+    public LocalTime getEndTime() { return endTime; }
+    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
 
-    public Integer getCapacity() { return capacity; }
-    public void setCapacity(Integer capacity) { this.capacity = capacity; }
+    public Integer getDaysOfWeek() { return daysOfWeek; }
+    public void setDaysOfWeek(Integer daysOfWeek) { this.daysOfWeek = daysOfWeek; }
 
-    public Integer getBookedCount() { return bookedCount; }
-    public void setBookedCount(Integer bookedCount) { this.bookedCount = bookedCount; }
+    public Integer getScheduledCount() { return scheduledCount; }
+    public void setScheduledCount(Integer scheduledCount) { this.scheduledCount = scheduledCount; }
 
     public SessionStatus getStatus() { return status; }
     public void setStatus(SessionStatus status) { this.status = status; }

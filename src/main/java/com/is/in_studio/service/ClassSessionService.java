@@ -1,5 +1,8 @@
 package com.is.in_studio.service;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -9,13 +12,11 @@ import org.springframework.stereotype.Service;
 import com.is.in_studio.domain.dto.ClassSessionResponseDto;
 import com.is.in_studio.domain.input.ClassSessionInput;
 import com.is.in_studio.entity.ClassSession;
-import com.is.in_studio.entity.Discipline;
 import com.is.in_studio.entity.Instructor;
 import com.is.in_studio.entity.Room;
 import com.is.in_studio.exception.CustomExceptions.NotFoundException;
 import com.is.in_studio.exception.CustomExceptions.ServerErrorException;
 import com.is.in_studio.repository.ClassSessionRepository;
-import com.is.in_studio.repository.DisciplineRepository;
 import com.is.in_studio.repository.InstructorRepository;
 import com.is.in_studio.repository.RoomRepository;
 
@@ -27,16 +28,13 @@ public class ClassSessionService {
     private static final Logger log = LoggerFactory.getLogger(ClassSessionService.class);
 
     private final ClassSessionRepository sessionRepository;
-    private final DisciplineRepository disciplineRepository;
     private final InstructorRepository instructorRepository;
     private final RoomRepository roomRepository;
 
     public ClassSessionService(ClassSessionRepository sessionRepository,
-                               DisciplineRepository disciplineRepository,
                                InstructorRepository instructorRepository,
                                RoomRepository roomRepository) {
         this.sessionRepository = sessionRepository;
-        this.disciplineRepository = disciplineRepository;
         this.instructorRepository = instructorRepository;
         this.roomRepository = roomRepository;
     }
@@ -97,20 +95,26 @@ public class ClassSessionService {
     }
 
     private void applyInput(ClassSession session, ClassSessionInput input) {
-        Discipline discipline = disciplineRepository.findById(input.getDisciplineId())
-            .orElseThrow(() -> new NotFoundException("Discipline not found with id: " + input.getDisciplineId()));
         Instructor instructor = instructorRepository.findById(input.getInstructorId())
             .orElseThrow(() -> new NotFoundException("Instructor not found with id: " + input.getInstructorId()));
         Room room = roomRepository.findById(input.getRoomId())
             .orElseThrow(() -> new NotFoundException("Room not found with id: " + input.getRoomId()));
 
-        session.setDiscipline(discipline);
         session.setInstructor(instructor);
         session.setRoom(room);
-        session.setStartDatetime(input.getStartDatetime());
-        session.setEndDatetime(input.getEndDatetime());
-        session.setCapacity(input.getCapacity());
+        session.setStartTime(LocalTime.parse(input.getStartTime(), DateTimeFormatter.ofPattern("HH:mm")));
+        session.setEndTime(LocalTime.parse(input.getEndTime(), DateTimeFormatter.ofPattern("HH:mm")));
+        session.setDaysOfWeek(daysToBitmask(input.getDays()));
         session.setNotes(input.getNotes());
         if (input.getStatus() != null) session.setStatus(input.getStatus());
+    }
+
+    private static int daysToBitmask(List<String> days) {
+        if (days == null || days.isEmpty()) return 0;
+        return days.stream()
+            .map(String::toUpperCase)
+            .map(DayOfWeek::valueOf)
+            .mapToInt(d -> 1 << (d.getValue() - 1))
+            .sum();
     }
 }
