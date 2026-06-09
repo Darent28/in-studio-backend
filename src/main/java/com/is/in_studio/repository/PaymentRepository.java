@@ -24,4 +24,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     @Query("SELECT p.membership.membershipId, MAX(p.paymentId) FROM Payment p GROUP BY p.membership.membershipId")
     List<Object[]> findLastPaymentIdPerMembership();
+
+    @Query("SELECT p FROM Payment p JOIN FETCH p.membership m JOIN FETCH m.user JOIN FETCH p.plan WHERE p.transactionRef = :ref")
+    Optional<Payment> findByTransactionRef(@Param("ref") String transactionRef);
 }

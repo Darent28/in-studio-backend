@@ -62,18 +62,32 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponseDto create(PaymentInput input) {
+        // Dedup: electronic payments may arrive from both the client confirm call and the webhook
+        if (input.getTransactionRef() != null) {
+            var existing = paymentRepository.findByTransactionRef(input.getTransactionRef());
+            if (existing.isPresent()) {
+                return PaymentResponseDto.fromEntity(existing.get());
+            }
+        }
+
         User user = userRepository.findById(input.getUserId())
             .orElseThrow(() -> new NotFoundException("User not found with id: " + input.getUserId()));
         Plan plan = planRepository.findById(input.getPlanId())
             .orElseThrow(() -> new NotFoundException("Plan not found with id: " + input.getPlanId()));
+
+        boolean needsConfirmation = input.getMethod() == Payment.PaymentMethod.CASH
+            || input.getMethod() == Payment.PaymentMethod.TRANSFER;
+
+        int credits = plan.getCredits() != null ? plan.getCredits() : 0;
 
         LocalDate today = LocalDate.now();
         Membership membership = new Membership();
         membership.setUser(user);
         membership.setStartDate(today);
         membership.setEndDate(today.plusDays(plan.getDurationDays()));
-        membership.setCreditsLeft(0);
-        membership.setStatus(MembershipStatus.FROZEN);
+        membership.setStatus(needsConfirmation ? MembershipStatus.FROZEN : MembershipStatus.ACTIVE);
+        membership.setCreditsLeft(needsConfirmation ? 0 : credits);
+        membership.setCreditsTotal(needsConfirmation ? 0 : credits);
         membershipRepository.save(membership);
 
         Payment payment = new Payment();
@@ -83,6 +97,10 @@ public class PaymentService {
         payment.setCurrency(input.getCurrency() != null ? input.getCurrency() : "MXN");
         payment.setMethod(input.getMethod());
         payment.setTransactionRef(input.getTransactionRef());
+        payment.setStatus(needsConfirmation ? Payment.PaymentStatus.PENDING : Payment.PaymentStatus.COMPLETED);
+        if (!needsConfirmation) {
+            payment.setPaidAt(OffsetDateTime.now());
+        }
         paymentRepository.save(payment);
 
         return paymentRepository.findByIdWithDetails(payment.getPaymentId())

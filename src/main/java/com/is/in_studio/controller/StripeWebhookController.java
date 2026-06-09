@@ -80,9 +80,7 @@ public class StripeWebhookController {
                     paymentInput.setCurrency("MXN");
                     paymentInput.setMethod(com.is.in_studio.entity.Payment.PaymentMethod.STRIPE);
                     paymentInput.setTransactionRef(intent.getId());
-                    var payment = paymentService.create(paymentInput);
-                    paymentService.confirm(payment.paymentId());
-
+                    paymentService.create(paymentInput);
                     savePaymentMethodIfCard(userId, intent);
                 }
             });

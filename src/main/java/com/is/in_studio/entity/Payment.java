@@ -30,7 +30,7 @@ public class Payment implements Serializable {
     private BigDecimal amount;
 
     @Column(name = "currency", nullable = false, length = 3)
-    private String currency = "USD";
+    private String currency = "MXN";
 
     @Column(name = "method", nullable = false, columnDefinition = "payment_method")
     @Enumerated(EnumType.STRING)

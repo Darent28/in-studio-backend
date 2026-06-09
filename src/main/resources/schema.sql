@@ -21,8 +21,9 @@ ALTER TABLE membership    DROP COLUMN IF EXISTS payment_method;;
 ALTER TABLE membership    DROP COLUMN IF EXISTS payment_status;;
 ALTER TABLE membership    DROP COLUMN IF EXISTS stripe_payment_intent_id;;
 ALTER TABLE membership    DROP COLUMN IF EXISTS plan_id;;
-ALTER TABLE membership    ADD COLUMN IF NOT EXISTS start_date DATE;;
-ALTER TABLE membership    ADD COLUMN IF NOT EXISTS end_date   DATE;;
+ALTER TABLE membership    ADD COLUMN IF NOT EXISTS start_date    DATE;;
+ALTER TABLE membership    ADD COLUMN IF NOT EXISTS end_date      DATE;;
+ALTER TABLE membership    ADD COLUMN IF NOT EXISTS credits_total INT NOT NULL DEFAULT 0;;
 ALTER TABLE payment       ADD COLUMN IF NOT EXISTS plan_id    INT          REFERENCES plan (plan_id);;
 DROP TYPE IF EXISTS gender_type;;
 

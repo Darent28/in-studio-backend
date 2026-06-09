@@ -101,6 +101,29 @@ public class PaymentController {
         );
     }
 
+    // ── Stripe client-side confirm (called by frontend after Stripe.js succeeds) ─
+
+    @PostMapping("/stripe/confirm")
+    public PaymentResponseDto confirmStripePayment(@RequestBody Map<String, Object> body,
+                                                    HttpServletRequest request) {
+        Long userId = extractUserId(request);
+        String paymentIntentId = (String) body.get("paymentIntentId");
+        Integer planId = ((Number) body.get("planId")).intValue();
+
+        Plan plan = planRepository.findById(planId)
+            .orElseThrow(() -> new NotFoundException("Plan not found: " + planId));
+
+        PaymentInput paymentInput = new PaymentInput();
+        paymentInput.setUserId(userId);
+        paymentInput.setPlanId(planId);
+        paymentInput.setAmount(plan.getPrice());
+        paymentInput.setCurrency("MXN");
+        paymentInput.setMethod(com.is.in_studio.entity.Payment.PaymentMethod.STRIPE);
+        paymentInput.setTransactionRef(paymentIntentId);
+
+        return paymentService.create(paymentInput);
+    }
+
     // ── Manual payment (Cash / Bank Transfer) ────────────────────────────────
 
     @PostMapping("/manual")
