@@ -40,6 +40,9 @@ public class User implements Serializable {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private UserRole role = UserRole.CLIENT;
 
+    @Column(name = "stripe_customer_id", length = 100)
+    private String stripeCustomerId;
+
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
@@ -145,6 +148,9 @@ public class User implements Serializable {
     public void setRole(UserRole role) {
         this.role = role;
     }
+
+    public String getStripeCustomerId() { return stripeCustomerId; }
+    public void setStripeCustomerId(String stripeCustomerId) { this.stripeCustomerId = stripeCustomerId; }
 
     public Boolean getActive() {
         return active;

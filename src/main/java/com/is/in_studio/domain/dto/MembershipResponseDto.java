@@ -11,32 +11,32 @@ public record MembershipResponseDto(
     String userFirstName,
     String userLastName,
     String userEmail,
-    Integer planId,
-    String planName,
-    String planType,
-    Integer planCredits,
     LocalDate startDate,
     LocalDate endDate,
     Integer creditsLeft,
+    Integer creditsTotal,
     String status,
-    OffsetDateTime createdAt
+    OffsetDateTime createdAt,
+    Long lastPaymentId
 ) {
     public static MembershipResponseDto fromEntity(Membership m) {
+        return fromEntity(m, null);
+    }
+
+    public static MembershipResponseDto fromEntity(Membership m, Long lastPaymentId) {
         return new MembershipResponseDto(
             m.getMembershipId(),
             m.getUser().getUserId(),
             m.getUser().getFirstName(),
             m.getUser().getLastName(),
             m.getUser().getEmail(),
-            m.getPlan().getPlanId(),
-            m.getPlan().getName(),
-            m.getPlan().getType() != null ? m.getPlan().getType().name() : null,
-            m.getPlan().getCredits(),
             m.getStartDate(),
             m.getEndDate(),
             m.getCreditsLeft(),
+            m.getCreditsTotal() != null ? m.getCreditsTotal() : 0,
             m.getStatus().name(),
-            m.getCreatedAt()
+            m.getCreatedAt(),
+            lastPaymentId
         );
     }
 }

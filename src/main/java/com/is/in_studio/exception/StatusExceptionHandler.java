@@ -39,6 +39,8 @@ public class StatusExceptionHandler {
             httpStatus = HttpStatus.NOT_FOUND;
         } else if (ex.getClass() == CustomExceptions.ServerErrorException.class) {
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        } else if (ex.getClass() == CustomExceptions.BadRequestException.class) {
+            httpStatus = HttpStatus.BAD_REQUEST;
         }
 
         return ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());

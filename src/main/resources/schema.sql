@@ -16,6 +16,14 @@ ALTER TABLE instructor    DROP COLUMN IF EXISTS last_name;;
 ALTER TABLE instructor    DROP COLUMN IF EXISTS email;;
 ALTER TABLE instructor    DROP COLUMN IF EXISTS phone;;
 ALTER TABLE class_session DROP COLUMN IF EXISTS capacity;;
+DROP INDEX IF EXISTS membership_one_active_per_user;;
+ALTER TABLE membership    DROP COLUMN IF EXISTS payment_method;;
+ALTER TABLE membership    DROP COLUMN IF EXISTS payment_status;;
+ALTER TABLE membership    DROP COLUMN IF EXISTS stripe_payment_intent_id;;
+ALTER TABLE membership    DROP COLUMN IF EXISTS plan_id;;
+ALTER TABLE membership    ADD COLUMN IF NOT EXISTS start_date DATE;;
+ALTER TABLE membership    ADD COLUMN IF NOT EXISTS end_date   DATE;;
+ALTER TABLE payment       ADD COLUMN IF NOT EXISTS plan_id    INT          REFERENCES plan (plan_id);;
 DROP TYPE IF EXISTS gender_type;;
 
 -- ============================================================
@@ -25,26 +33,9 @@ DROP TYPE IF EXISTS gender_type;;
 DO $$ BEGIN CREATE TYPE user_role         AS ENUM ('CLIENT', 'ADMIN', 'STAFF');                    EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 DO $$ BEGIN CREATE TYPE membership_status AS ENUM ('ACTIVE', 'EXPIRED', 'CANCELLED', 'FROZEN');    EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 DO $$ BEGIN CREATE TYPE session_status    AS ENUM ('SCHEDULED', 'CANCELLED', 'COMPLETED');         EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
-DO $$ BEGIN CREATE TYPE booking_status    AS ENUM ('CONFIRMED', 'CANCELLED', 'NO_SHOW', 'ATTENDED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 DO $$ BEGIN CREATE TYPE plan_type         AS ENUM ('PACK', 'UNLIMITED', 'MONTHLY', 'DROP_IN');     EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 DO $$ BEGIN CREATE TYPE payment_method    AS ENUM ('CARD', 'CASH', 'TRANSFER', 'PAYPAL', 'STRIPE'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 DO $$ BEGIN CREATE TYPE payment_status    AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED');  EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
-
--- ============================================================
--- TABLE: discipline
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS discipline (
-    discipline_id   INT             GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name            VARCHAR(50)     NOT NULL UNIQUE,
-    description     TEXT,
-    color_hex       VARCHAR(7),
-    icon            VARCHAR(50),
-    active          BOOLEAN         NOT NULL DEFAULT TRUE
-);;
-
-COMMENT ON TABLE  discipline           IS 'Class types: Pilates, Spinning, Functional, Barre, etc.';;
-COMMENT ON COLUMN discipline.color_hex IS 'Hex color for UI display, e.g. #FF5733';;
 
 -- ============================================================
 -- TABLE: instructor
@@ -144,14 +135,11 @@ CREATE TABLE IF NOT EXISTS plan (
     price           NUMERIC(10, 2)  NOT NULL CHECK (price >= 0),
     duration_days   INT             NOT NULL CHECK (duration_days > 0),
     type            plan_type       NOT NULL,
-    discipline_id   INT             REFERENCES discipline (discipline_id)
-                                        ON DELETE SET NULL,
     active          BOOLEAN         NOT NULL DEFAULT TRUE
 );;
 
-COMMENT ON TABLE  plan               IS 'Membership plans available for purchase';;
-COMMENT ON COLUMN plan.credits       IS 'Number of class credits included; 0 for UNLIMITED';;
-COMMENT ON COLUMN plan.discipline_id IS 'NULL means the plan is valid for all disciplines';;
+COMMENT ON TABLE  plan         IS 'Membership plans available for purchase';;
+COMMENT ON COLUMN plan.credits IS 'Number of class credits included; 0 for UNLIMITED';;
 
 -- ============================================================
 -- TABLE: membership
@@ -202,31 +190,6 @@ COMMENT ON TABLE class_session IS 'Scheduled recurring class sessions with day/t
 
 CREATE INDEX IF NOT EXISTS idx_session_instructor ON class_session (instructor_id);;
 CREATE INDEX IF NOT EXISTS idx_session_room       ON class_session (room_id);;
-
--- ============================================================
--- TABLE: booking
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS booking (
-    booking_id      BIGINT          GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id         BIGINT          NOT NULL REFERENCES "user" (user_id)
-                                        ON DELETE CASCADE,
-    session_id      BIGINT          NOT NULL REFERENCES class_session (session_id)
-                                        ON DELETE RESTRICT,
-    membership_id   BIGINT          NOT NULL REFERENCES membership (membership_id)
-                                        ON DELETE RESTRICT,
-    status          booking_status  NOT NULL DEFAULT 'CONFIRMED',
-    checked_in      BOOLEAN         NOT NULL DEFAULT FALSE,
-    booked_at       TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
-    cancelled_at    TIMESTAMPTZ,
-
-    CONSTRAINT uq_booking_user_session UNIQUE (user_id, session_id)
-);;
-
-COMMENT ON TABLE booking IS 'Class reservations made by users';;
-
-CREATE INDEX IF NOT EXISTS idx_booking_session ON booking (session_id);;
-CREATE INDEX IF NOT EXISTS idx_booking_user    ON booking (user_id);;
 
 -- ============================================================
 -- TABLE: waitlist
@@ -308,13 +271,3 @@ CREATE TRIGGER trg_user_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION trg_set_updated_at();;
 
--- ============================================================
--- SEED: default disciplines
--- ============================================================
-
-INSERT INTO discipline (name, description, color_hex, icon) VALUES
-    ('Pilates',     'Mat and reformer Pilates classes',         '#6C63FF', 'pilates'),
-    ('Spinning',    'Indoor cycling / spin classes',            '#FF6B6B', 'spinning'),
-    ('Functional',  'Functional training and HIIT workouts',    '#4ECDC4', 'functional'),
-    ('Barre',       'Ballet-inspired strength and flexibility', '#FFD93D', 'barre')
-ON CONFLICT (name) DO NOTHING;;

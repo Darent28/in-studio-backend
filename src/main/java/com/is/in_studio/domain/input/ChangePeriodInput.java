@@ -5,10 +5,7 @@ import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 
-public class MembershipInput {
-
-    @NotNull(message = "userId is required")
-    private Long userId;
+public class ChangePeriodInput {
 
     @NotNull(message = "startDate is required")
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -18,10 +15,7 @@ public class MembershipInput {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 
-    public MembershipInput() {}
-
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public ChangePeriodInput() {}
 
     public LocalDate getStartDate() { return startDate; }
     public void setStartDate(LocalDate startDate) { this.startDate = startDate; }

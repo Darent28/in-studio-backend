@@ -22,10 +22,6 @@ public class Membership implements Serializable {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id", nullable = false)
-    private Plan plan;
-
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
@@ -34,6 +30,9 @@ public class Membership implements Serializable {
 
     @Column(name = "credits_left", nullable = false)
     private Integer creditsLeft;
+
+    @Column(name = "credits_total", nullable = false)
+    private Integer creditsTotal = 0;
 
     @Column(name = "status", nullable = false, columnDefinition = "membership_status")
     @Enumerated(EnumType.STRING)
@@ -56,9 +55,6 @@ public class Membership implements Serializable {
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 
-    public Plan getPlan() { return plan; }
-    public void setPlan(Plan plan) { this.plan = plan; }
-
     public LocalDate getStartDate() { return startDate; }
     public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
 
@@ -67,6 +63,9 @@ public class Membership implements Serializable {
 
     public Integer getCreditsLeft() { return creditsLeft; }
     public void setCreditsLeft(Integer creditsLeft) { this.creditsLeft = creditsLeft; }
+
+    public Integer getCreditsTotal() { return creditsTotal; }
+    public void setCreditsTotal(Integer creditsTotal) { this.creditsTotal = creditsTotal; }
 
     public MembershipStatus getStatus() { return status; }
     public void setStatus(MembershipStatus status) { this.status = status; }

@@ -32,4 +32,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
            "LOWER(u.lastName)  LIKE LOWER(CONCAT('%', :q, '%')) OR " +
            "LOWER(u.email)     LIKE LOWER(CONCAT('%', :q, '%'))")
     List<User> searchByNameOrEmail(@org.springframework.data.repository.query.Param("q") String q);
+
+    List<User> findByRole(User.UserRole role);
 }

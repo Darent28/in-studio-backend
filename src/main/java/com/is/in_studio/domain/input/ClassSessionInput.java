@@ -5,6 +5,7 @@ import java.util.List;
 import com.is.in_studio.entity.ClassSession.SessionStatus;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class ClassSessionInput {
@@ -17,10 +18,10 @@ public class ClassSessionInput {
     @Min(value = 1, message = "Please select a room")
     private Integer roomId;
 
-    @NotNull(message = "Start time is required")
+    @NotBlank(message = "Start time is required")
     private String startTime;
 
-    @NotNull(message = "End time is required")
+    @NotBlank(message = "End time is required")
     private String endTime;
 
     private List<String> days = new java.util.ArrayList<>();

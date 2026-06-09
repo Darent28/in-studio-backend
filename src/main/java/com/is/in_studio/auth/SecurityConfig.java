@@ -32,7 +32,7 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
-    @Value("${cors.allowed-origins:http://localhost:3000}")
+    @Value("${cors.allowed-origins:http://localhost:3000, http://localhost:8081}")
     private String allowedOrigins;
 
     @Bean
@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/cron/**").permitAll()
+                .requestMatchers("/api/stripe/webhook").permitAll()
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
