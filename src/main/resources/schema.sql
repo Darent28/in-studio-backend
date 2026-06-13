@@ -9,34 +9,9 @@
 -- ============================================================
 -- DROP REMOVED COLUMNS / TYPES (idempotent)
 -- ============================================================
-
-ALTER TABLE "user"        DROP COLUMN IF EXISTS gender;;
-ALTER TABLE instructor    DROP COLUMN IF EXISTS first_name;;
-ALTER TABLE instructor    DROP COLUMN IF EXISTS last_name;;
-ALTER TABLE instructor    DROP COLUMN IF EXISTS email;;
-ALTER TABLE instructor    DROP COLUMN IF EXISTS phone;;
-ALTER TABLE class_session DROP COLUMN IF EXISTS capacity;;
-DROP INDEX IF EXISTS membership_one_active_per_user;;
-ALTER TABLE membership    DROP COLUMN IF EXISTS payment_method;;
-ALTER TABLE membership    DROP COLUMN IF EXISTS payment_status;;
-ALTER TABLE membership    DROP COLUMN IF EXISTS stripe_payment_intent_id;;
-ALTER TABLE membership    DROP COLUMN IF EXISTS plan_id;;
-ALTER TABLE membership    ADD COLUMN IF NOT EXISTS start_date    DATE;;
-ALTER TABLE membership    ADD COLUMN IF NOT EXISTS end_date      DATE;;
-ALTER TABLE membership    ADD COLUMN IF NOT EXISTS credits_total INT NOT NULL DEFAULT 0;;
-ALTER TABLE payment       ADD COLUMN IF NOT EXISTS plan_id    INT          REFERENCES plan (plan_id);;
-DROP TYPE IF EXISTS gender_type;;
-
 -- ============================================================
 -- CUSTOM ENUM TYPES
 -- ============================================================
-
-DO $$ BEGIN CREATE TYPE user_role         AS ENUM ('CLIENT', 'ADMIN', 'STAFF');                    EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
-DO $$ BEGIN CREATE TYPE membership_status AS ENUM ('ACTIVE', 'EXPIRED', 'CANCELLED', 'FROZEN');    EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
-DO $$ BEGIN CREATE TYPE session_status    AS ENUM ('SCHEDULED', 'CANCELLED', 'COMPLETED');         EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
-DO $$ BEGIN CREATE TYPE plan_type         AS ENUM ('PACK', 'UNLIMITED', 'MONTHLY', 'DROP_IN');     EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
-DO $$ BEGIN CREATE TYPE payment_method    AS ENUM ('CARD', 'CASH', 'TRANSFER', 'PAYPAL', 'STRIPE'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
-DO $$ BEGIN CREATE TYPE payment_status    AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED');  EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 
 -- ============================================================
 -- TABLE: instructor
@@ -56,13 +31,6 @@ CREATE TABLE IF NOT EXISTS instructor (
 );;
 
 COMMENT ON TABLE instructor IS 'Coaches / trainers that lead class sessions';;
-
-ALTER TABLE instructor ADD COLUMN IF NOT EXISTS bio         TEXT;;
-ALTER TABLE instructor ADD COLUMN IF NOT EXISTS specialty   VARCHAR(100);;
-ALTER TABLE instructor ADD COLUMN IF NOT EXISTS photo_url   VARCHAR(255);;
-ALTER TABLE instructor ADD COLUMN IF NOT EXISTS active      BOOLEAN      NOT NULL DEFAULT TRUE;;
-ALTER TABLE instructor ADD COLUMN IF NOT EXISTS created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW();;
-ALTER TABLE instructor ADD COLUMN IF NOT EXISTS user_id     BIGINT       REFERENCES "user" (user_id) ON DELETE SET NULL;;
 
 -- ============================================================
 -- TABLE: room
