@@ -31,4 +31,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r JOIN FETCH r.session s JOIN FETCH s.room JOIN FETCH s.instructor i JOIN FETCH i.user WHERE r.user.userId = :userId AND r.status != 'CANCELLED' ORDER BY r.sessionDate DESC, r.createdAt DESC")
     List<Reservation> findActiveByUser(@Param("userId") Long userId);
+
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.session.sessionId = :sessionId AND r.sessionDate = :date AND r.status != 'CANCELLED' ORDER BY r.createdAt ASC")
+    List<Reservation> findActiveBySessionAndDate(@Param("sessionId") Long sessionId, @Param("date") LocalDate date);
 }

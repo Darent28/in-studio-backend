@@ -10,13 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import com.is.in_studio.auth.JwtUtil;
 import com.is.in_studio.domain.dto.PaymentResponseDto;
-import com.is.in_studio.domain.dto.UserPaymentMethodResponseDto;
 import com.is.in_studio.domain.input.PaymentInput;
 import com.is.in_studio.entity.Plan;
 import com.is.in_studio.entity.User;
 import com.is.in_studio.exception.CustomExceptions.NotFoundException;
 import com.is.in_studio.repository.PlanRepository;
-import com.is.in_studio.repository.UserPaymentMethodRepository;
 import com.is.in_studio.repository.UserRepository;
 import com.is.in_studio.service.EmailService;
 import com.is.in_studio.service.PaymentService;
@@ -41,19 +39,17 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final PlanRepository planRepository;
     private final UserRepository userRepository;
-    private final UserPaymentMethodRepository paymentMethodRepository;
     private final EmailService emailService;
 
     public PaymentController(JwtUtil jwtUtil,
                              PaymentService paymentService,
-                             PlanRepository planRepository, UserRepository userRepository,
-                             UserPaymentMethodRepository paymentMethodRepository,
+                             PlanRepository planRepository,
+                             UserRepository userRepository,
                              EmailService emailService) {
         this.jwtUtil = jwtUtil;
         this.paymentService = paymentService;
         this.planRepository = planRepository;
         this.userRepository = userRepository;
-        this.paymentMethodRepository = paymentMethodRepository;
         this.emailService = emailService;
     }
 
@@ -154,18 +150,6 @@ public class PaymentController {
 
         notifyAdmins(user, plan, rawMethod);
         return payment;
-    }
-
-    // ── Saved payment methods ─────────────────────────────────────────────────
-
-    @GetMapping("/methods")
-    public List<UserPaymentMethodResponseDto> getSavedMethods(HttpServletRequest request) {
-        Long userId = extractUserId(request);
-        return paymentMethodRepository
-            .findByUser_UserIdOrderByIsDefaultDescCreatedAtDesc(userId)
-            .stream()
-            .map(UserPaymentMethodResponseDto::fromEntity)
-            .toList();
     }
 
     // ── Exception handler ─────────────────────────────────────────────────────
