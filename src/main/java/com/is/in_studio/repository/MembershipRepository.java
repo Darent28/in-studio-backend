@@ -18,6 +18,6 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     List<Membership> findByStatus(Membership.MembershipStatus status);
 
     @Modifying
-    @Query("UPDATE Membership m SET m.status = com.is.in_studio.entity.Membership.MembershipStatus.EXPIRED WHERE m.status = com.is.in_studio.entity.Membership.MembershipStatus.ACTIVE AND m.endDate < :today")
+    @Query(value = "UPDATE membership SET status = 'EXPIRED'::membership_status WHERE status = 'ACTIVE'::membership_status AND end_date < :today", nativeQuery = true)
     int expireOverdue(LocalDate today);
 }
