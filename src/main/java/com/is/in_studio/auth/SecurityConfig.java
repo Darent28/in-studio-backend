@@ -34,7 +34,7 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
-    @Value("${cors.allowed-origins:http://localhost:3000, http://localhost:8081}")
+    @Value("${cors.allowed-origins:http://localhost:3000, http://localhost:8081, exp://192.168.68.107:8081}")
     private String allowedOrigins;
 
     @Bean
