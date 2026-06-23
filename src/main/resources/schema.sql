@@ -240,3 +240,25 @@ CREATE TRIGGER trg_user_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION trg_set_updated_at();;
 
+-- ============================================================
+-- TABLE: offer
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS offer (
+    offer_id         INT             GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    plan_id          INT             NOT NULL REFERENCES plan (plan_id) ON DELETE CASCADE,
+    discount_percent INT             NOT NULL CHECK (discount_percent > 0 AND discount_percent <= 100),
+    day_of_week      SMALLINT        CHECK (day_of_week BETWEEN 1 AND 7),
+    start_hour       TIME,
+    end_hour         TIME,
+    active           BOOLEAN         NOT NULL DEFAULT TRUE,
+    created_at       TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+);;
+
+COMMENT ON TABLE offer IS 'Time/day-based discounts applied to plans at payment intent creation';;
+COMMENT ON COLUMN offer.day_of_week IS '1=Monday … 7=Sunday; NULL means every day';;
+COMMENT ON COLUMN offer.start_hour  IS 'Offer window start (inclusive); NULL means all day';;
+COMMENT ON COLUMN offer.end_hour    IS 'Offer window end (exclusive); NULL means all day';;
+
+CREATE INDEX IF NOT EXISTS idx_offer_plan ON offer (plan_id) WHERE active = TRUE;;
+

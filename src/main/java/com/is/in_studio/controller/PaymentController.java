@@ -1,6 +1,9 @@
 package com.is.in_studio.controller;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +17,7 @@ import com.is.in_studio.domain.input.PaymentInput;
 import com.is.in_studio.entity.Plan;
 import com.is.in_studio.entity.User;
 import com.is.in_studio.exception.CustomExceptions.NotFoundException;
+import com.is.in_studio.repository.OfferRepository;
 import com.is.in_studio.repository.PlanRepository;
 import com.is.in_studio.repository.UserRepository;
 import com.is.in_studio.service.EmailService;
@@ -39,17 +43,20 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final PlanRepository planRepository;
     private final UserRepository userRepository;
+    private final OfferRepository offerRepository;
     private final EmailService emailService;
 
     public PaymentController(JwtUtil jwtUtil,
                              PaymentService paymentService,
                              PlanRepository planRepository,
                              UserRepository userRepository,
+                             OfferRepository offerRepository,
                              EmailService emailService) {
         this.jwtUtil = jwtUtil;
         this.paymentService = paymentService;
         this.planRepository = planRepository;
         this.userRepository = userRepository;
+        this.offerRepository = offerRepository;
         this.emailService = emailService;
     }
 
@@ -73,9 +80,17 @@ public class PaymentController {
 
         String customerId = getOrCreateStripeCustomer(user);
 
-        long amountCents = plan.getPrice()
-            .multiply(BigDecimal.valueOf(100))
-            .longValue();
+        int dayOfWeek = LocalDate.now().getDayOfWeek().getValue();
+        LocalTime now = LocalTime.now();
+        var offer = offerRepository.findBestActiveOffer(planId, dayOfWeek, now);
+
+        BigDecimal originalPrice = plan.getPrice();
+        BigDecimal finalPrice = offer
+            .map(o -> originalPrice.multiply(BigDecimal.valueOf(100 - o.getDiscountPercent()))
+                                   .divide(BigDecimal.valueOf(100)))
+            .orElse(originalPrice);
+
+        long amountCents = finalPrice.multiply(BigDecimal.valueOf(100)).longValue();
 
         PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
             .setAmount(amountCents)
@@ -91,10 +106,16 @@ public class PaymentController {
             .build();
 
         PaymentIntent intent = PaymentIntent.create(params);
-        return Map.of(
-            "clientSecret", intent.getClientSecret(),
-            "paymentIntentId", intent.getId()
-        );
+
+        Map<String, String> response = new HashMap<>();
+        response.put("clientSecret", intent.getClientSecret());
+        response.put("paymentIntentId", intent.getId());
+        offer.ifPresent(o -> {
+            response.put("discountPercent", String.valueOf(o.getDiscountPercent()));
+            response.put("originalPrice", originalPrice.toPlainString());
+            response.put("finalPrice", finalPrice.toPlainString());
+        });
+        return response;
     }
 
     // ── Stripe client-side confirm (called by frontend after Stripe.js succeeds) ─
