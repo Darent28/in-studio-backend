@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.is.in_studio.entity.Membership;
@@ -19,5 +20,5 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
     @Modifying
     @Query(value = "UPDATE membership SET status = 'EXPIRED'::membership_status WHERE status = 'ACTIVE'::membership_status AND end_date < :today", nativeQuery = true)
-    int expireOverdue(LocalDate today);
+    int expireOverdue(@Param("today") LocalDate today);
 }
