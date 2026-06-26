@@ -21,4 +21,7 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     @Modifying
     @Query(value = "UPDATE membership SET status = 'EXPIRED'::membership_status WHERE status = 'ACTIVE'::membership_status AND end_date < :today", nativeQuery = true)
     int expireOverdue(@Param("today") LocalDate today);
+
+    @Query("SELECT m FROM Membership m JOIN FETCH m.user WHERE m.status = :status ORDER BY m.creditsLeft ASC")
+    List<Membership> findByStatusWithUser(@Param("status") Membership.MembershipStatus status);
 }

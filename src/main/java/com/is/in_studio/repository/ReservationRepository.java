@@ -34,4 +34,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.session.sessionId = :sessionId AND r.sessionDate = :date AND r.status != 'CANCELLED' ORDER BY r.createdAt ASC")
     List<Reservation> findActiveBySessionAndDate(@Param("sessionId") Long sessionId, @Param("date") LocalDate date);
+
+    @Query("SELECT r.user.userId, r.user.firstName, r.user.lastName, r.user.email, COUNT(r) FROM Reservation r WHERE r.status = 'RESERVED' GROUP BY r.user.userId, r.user.firstName, r.user.lastName, r.user.email ORDER BY COUNT(r) DESC")
+    List<Object[]> findTopAttendees(org.springframework.data.domain.Pageable pageable);
 }
