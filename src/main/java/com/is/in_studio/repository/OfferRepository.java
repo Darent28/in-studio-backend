@@ -16,6 +16,9 @@ public interface OfferRepository extends JpaRepository<Offer, Integer> {
 
     List<Offer> findByPlan_PlanId(Integer planId);
 
+    @Query("SELECT o FROM Offer o WHERE o.plan.planId = :planId AND o.active = true ORDER BY o.discountPercent DESC")
+    List<Offer> findActiveByPlanId(@Param("planId") Integer planId);
+
     /**
      * Returns active offers for a plan that match the date range and time window.
      * Day-of-week bitmask filtering is done in Java since JPQL has no bitwise ops.

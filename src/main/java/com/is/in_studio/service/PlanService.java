@@ -1,7 +1,5 @@
 package com.is.in_studio.service;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -34,12 +32,8 @@ public class PlanService {
 
     public List<PlanResponseDto> getAll() {
         try {
-            LocalDate today = LocalDate.now();
-            LocalTime now = LocalTime.now();
-            int todayBit = 1 << (today.getDayOfWeek().getValue() - 1);
-
             return planRepository.findAll().stream()
-                .map(plan -> PlanResponseDto.fromEntity(plan, bestDiscount(plan.getPlanId(), today, now, todayBit)))
+                .map(plan -> PlanResponseDto.fromEntity(plan, bestDiscount(plan.getPlanId())))
                 .toList();
         } catch (Exception e) {
             log.error("Failed to retrieve plans", e);
@@ -50,10 +44,7 @@ public class PlanService {
     public PlanResponseDto getById(Integer id) {
         Plan plan = planRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Plan not found with id: " + id));
-        LocalDate today = LocalDate.now();
-        LocalTime now = LocalTime.now();
-        int todayBit = 1 << (today.getDayOfWeek().getValue() - 1);
-        return PlanResponseDto.fromEntity(plan, bestDiscount(plan.getPlanId(), today, now, todayBit));
+        return PlanResponseDto.fromEntity(plan, bestDiscount(plan.getPlanId()));
     }
 
     @Transactional
@@ -94,10 +85,9 @@ public class PlanService {
         planRepository.deleteById(id);
     }
 
-    private Integer bestDiscount(Integer planId, LocalDate date, LocalTime time, int todayBit) {
-        return offerRepository.findCandidateOffers(planId, date, time)
+    private Integer bestDiscount(Integer planId) {
+        return offerRepository.findActiveByPlanId(planId)
             .stream()
-            .filter(o -> o.getDaysOfWeek() == null || o.getDaysOfWeek() == 0 || (o.getDaysOfWeek() & todayBit) != 0)
             .map(Offer::getDiscountPercent)
             .findFirst()
             .orElse(null);
