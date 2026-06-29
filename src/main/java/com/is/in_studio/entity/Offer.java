@@ -1,6 +1,7 @@
 package com.is.in_studio.entity;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 
@@ -22,8 +23,15 @@ public class Offer implements Serializable {
     @Column(name = "discount_percent", nullable = false)
     private Integer discountPercent;
 
-    @Column(name = "day_of_week")
-    private Integer dayOfWeek;
+    /** Bitmask: bit 0 = Mon, bit 1 = Tue, … bit 6 = Sun. 0 or null = any day. */
+    @Column(name = "days_of_week")
+    private Integer daysOfWeek;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     @Column(name = "start_hour")
     private LocalTime startHour;
@@ -53,8 +61,14 @@ public class Offer implements Serializable {
     public Integer getDiscountPercent() { return discountPercent; }
     public void setDiscountPercent(Integer discountPercent) { this.discountPercent = discountPercent; }
 
-    public Integer getDayOfWeek() { return dayOfWeek; }
-    public void setDayOfWeek(Integer dayOfWeek) { this.dayOfWeek = dayOfWeek; }
+    public Integer getDaysOfWeek() { return daysOfWeek; }
+    public void setDaysOfWeek(Integer daysOfWeek) { this.daysOfWeek = daysOfWeek; }
+
+    public LocalDate getStartDate() { return startDate; }
+    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+
+    public LocalDate getEndDate() { return endDate; }
+    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
 
     public LocalTime getStartHour() { return startHour; }
     public void setStartHour(LocalTime startHour) { this.startHour = startHour; }

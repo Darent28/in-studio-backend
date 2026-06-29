@@ -1,8 +1,10 @@
 package com.is.in_studio.service;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -67,12 +69,35 @@ public class OfferService {
         offerRepository.deleteById(id);
     }
 
+    /**
+     * Returns the best (highest discount) active offer for a plan at a given date and time.
+     * Checks: date range, day-of-week bitmask, and time window.
+     */
+    public Optional<OfferResponseDto> validate(Integer planId, LocalDate date, LocalTime time) {
+        // bit 0 = Mon (DayOfWeek.MONDAY.getValue() = 1, so bit = 1 << 0 = 1)
+        int dayBit = 1 << (date.getDayOfWeek().getValue() - 1);
+        return offerRepository.findCandidateOffers(planId, date, time)
+            .stream()
+            .filter(o -> {
+                Integer mask = o.getDaysOfWeek();
+                return mask == null || mask == 0 || (mask & dayBit) != 0;
+            })
+            .findFirst()
+            .map(OfferResponseDto::fromEntity);
+    }
+
     private void applyInput(Offer offer, OfferInput input, Plan plan) {
         offer.setPlan(plan);
         offer.setDiscountPercent(input.getDiscountPercent());
-        offer.setDayOfWeek(input.getDayOfWeek());
-        offer.setStartHour(input.getStartHour() != null ? LocalTime.parse(input.getStartHour(), TIME_FMT) : null);
-        offer.setEndHour(input.getEndHour()   != null ? LocalTime.parse(input.getEndHour(),   TIME_FMT) : null);
+        offer.setDaysOfWeek(input.getDaysOfWeek());
+        offer.setStartDate(input.getStartDate() != null && !input.getStartDate().isBlank()
+            ? LocalDate.parse(input.getStartDate()) : null);
+        offer.setEndDate(input.getEndDate() != null && !input.getEndDate().isBlank()
+            ? LocalDate.parse(input.getEndDate()) : null);
+        offer.setStartHour(input.getStartHour() != null && !input.getStartHour().isBlank()
+            ? LocalTime.parse(input.getStartHour(), TIME_FMT) : null);
+        offer.setEndHour(input.getEndHour() != null && !input.getEndHour().isBlank()
+            ? LocalTime.parse(input.getEndHour(), TIME_FMT) : null);
         offer.setActive(input.getActive() != null ? input.getActive() : true);
     }
 }

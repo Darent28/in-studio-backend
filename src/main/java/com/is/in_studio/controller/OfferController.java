@@ -1,8 +1,11 @@
 package com.is.in_studio.controller;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.is.in_studio.domain.dto.OfferResponseDto;
@@ -24,6 +27,21 @@ public class OfferController {
     @GetMapping
     public List<OfferResponseDto> getAll(@RequestParam(required = false) Integer planId) {
         return planId != null ? offerService.getByPlan(planId) : offerService.getAll();
+    }
+
+    /**
+     * Validates whether an active offer exists for a plan at a specific date and time.
+     * Returns 200 with the best matching offer, or 204 if none found.
+     */
+    @GetMapping("/validate")
+    public ResponseEntity<OfferResponseDto> validate(
+        @RequestParam Integer planId,
+        @RequestParam String date,
+        @RequestParam String time
+    ) {
+        return offerService.validate(planId, LocalDate.parse(date), LocalTime.parse(time))
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.noContent().build());
     }
 
     @PostMapping

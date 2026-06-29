@@ -1,5 +1,7 @@
 package com.is.in_studio.domain.dto;
 
+import java.time.LocalDate;
+
 import com.is.in_studio.entity.Offer;
 
 public record OfferResponseDto(
@@ -7,7 +9,9 @@ public record OfferResponseDto(
     Integer planId,
     String planName,
     Integer discountPercent,
-    Integer dayOfWeek,
+    Integer daysOfWeek,
+    LocalDate startDate,
+    LocalDate endDate,
     String startHour,
     String endHour,
     Boolean active
@@ -18,7 +22,9 @@ public record OfferResponseDto(
             o.getPlan().getPlanId(),
             o.getPlan().getName(),
             o.getDiscountPercent(),
-            o.getDayOfWeek(),
+            o.getDaysOfWeek(),
+            o.getStartDate(),
+            o.getEndDate(),
             o.getStartHour() != null ? o.getStartHour().toString() : null,
             o.getEndHour()   != null ? o.getEndHour().toString()   : null,
             o.getActive()

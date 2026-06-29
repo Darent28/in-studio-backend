@@ -1,8 +1,8 @@
 package com.is.in_studio.repository;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,22 +16,23 @@ public interface OfferRepository extends JpaRepository<Offer, Integer> {
 
     List<Offer> findByPlan_PlanId(Integer planId);
 
+    /**
+     * Returns active offers for a plan that match the date range and time window.
+     * Day-of-week bitmask filtering is done in Java since JPQL has no bitwise ops.
+     */
     @Query("""
         SELECT o FROM Offer o
         WHERE o.plan.planId = :planId
           AND o.active = true
-          AND (o.dayOfWeek IS NULL OR o.dayOfWeek = :dayOfWeek)
-          AND (o.startHour IS NULL OR o.startHour <= :now)
-          AND (o.endHour IS NULL OR o.endHour > :now)
+          AND (o.startDate IS NULL OR o.startDate <= :date)
+          AND (o.endDate   IS NULL OR o.endDate   >= :date)
+          AND (o.startHour IS NULL OR o.startHour <= :time)
+          AND (o.endHour   IS NULL OR o.endHour   >  :time)
         ORDER BY o.discountPercent DESC
         """)
-    List<Offer> findActiveOffersForPlan(
+    List<Offer> findCandidateOffers(
         @Param("planId") Integer planId,
-        @Param("dayOfWeek") Integer dayOfWeek,
-        @Param("now") LocalTime now
+        @Param("date") LocalDate date,
+        @Param("time") LocalTime time
     );
-
-    default Optional<Offer> findBestActiveOffer(Integer planId, Integer dayOfWeek, LocalTime now) {
-        return findActiveOffersForPlan(planId, dayOfWeek, now).stream().findFirst();
-    }
 }
