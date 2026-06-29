@@ -80,9 +80,16 @@ public class PaymentController {
 
         String customerId = getOrCreateStripeCustomer(user);
 
-        int dayOfWeek = LocalDate.now().getDayOfWeek().getValue();
+        LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
-        var offer = offerRepository.findBestActiveOffer(planId, dayOfWeek, now);
+        int dayBit = 1 << (today.getDayOfWeek().getValue() - 1);
+        var offer = offerRepository.findCandidateOffers(planId, today, now)
+            .stream()
+            .filter(o -> {
+                Integer mask = o.getDaysOfWeek();
+                return mask == null || mask == 0 || (mask & dayBit) != 0;
+            })
+            .findFirst();
 
         BigDecimal originalPrice = plan.getPrice();
         BigDecimal finalPrice = offer
