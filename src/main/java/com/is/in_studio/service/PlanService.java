@@ -1,5 +1,7 @@
 package com.is.in_studio.service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -8,9 +10,11 @@ import org.springframework.stereotype.Service;
 
 import com.is.in_studio.domain.dto.PlanResponseDto;
 import com.is.in_studio.domain.input.PlanInput;
+import com.is.in_studio.entity.Offer;
 import com.is.in_studio.entity.Plan;
 import com.is.in_studio.exception.CustomExceptions.NotFoundException;
 import com.is.in_studio.exception.CustomExceptions.ServerErrorException;
+import com.is.in_studio.repository.OfferRepository;
 import com.is.in_studio.repository.PlanRepository;
 
 import jakarta.transaction.Transactional;
@@ -21,15 +25,21 @@ public class PlanService {
     private static final Logger log = LoggerFactory.getLogger(PlanService.class);
 
     private final PlanRepository planRepository;
+    private final OfferRepository offerRepository;
 
-    public PlanService(PlanRepository planRepository) {
+    public PlanService(PlanRepository planRepository, OfferRepository offerRepository) {
         this.planRepository = planRepository;
+        this.offerRepository = offerRepository;
     }
 
     public List<PlanResponseDto> getAll() {
         try {
+            LocalDate today = LocalDate.now();
+            LocalTime now = LocalTime.now();
+            int todayBit = 1 << (today.getDayOfWeek().getValue() - 1);
+
             return planRepository.findAll().stream()
-                .map(PlanResponseDto::fromEntity)
+                .map(plan -> PlanResponseDto.fromEntity(plan, bestDiscount(plan.getPlanId(), today, now, todayBit)))
                 .toList();
         } catch (Exception e) {
             log.error("Failed to retrieve plans", e);
@@ -40,7 +50,10 @@ public class PlanService {
     public PlanResponseDto getById(Integer id) {
         Plan plan = planRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Plan not found with id: " + id));
-        return PlanResponseDto.fromEntity(plan);
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        int todayBit = 1 << (today.getDayOfWeek().getValue() - 1);
+        return PlanResponseDto.fromEntity(plan, bestDiscount(plan.getPlanId(), today, now, todayBit));
     }
 
     @Transactional
@@ -79,6 +92,15 @@ public class PlanService {
         planRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Plan not found with id: " + id));
         planRepository.deleteById(id);
+    }
+
+    private Integer bestDiscount(Integer planId, LocalDate date, LocalTime time, int todayBit) {
+        return offerRepository.findCandidateOffers(planId, date, time)
+            .stream()
+            .filter(o -> o.getDaysOfWeek() == null || o.getDaysOfWeek() == 0 || (o.getDaysOfWeek() & todayBit) != 0)
+            .map(Offer::getDiscountPercent)
+            .findFirst()
+            .orElse(null);
     }
 
     private void applyInput(Plan plan, PlanInput input) {

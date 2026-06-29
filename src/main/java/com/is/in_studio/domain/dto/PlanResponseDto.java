@@ -11,10 +11,11 @@ public record PlanResponseDto(
     BigDecimal price,
     Integer durationDays,
     String type,
-    Boolean active
+    Boolean active,
+    Integer discountPercent
 ) {
 
-    public static PlanResponseDto fromEntity(Plan plan) {
+    public static PlanResponseDto fromEntity(Plan plan, Integer discountPercent) {
         return new PlanResponseDto(
             plan.getPlanId(),
             plan.getName(),
@@ -22,7 +23,12 @@ public record PlanResponseDto(
             plan.getPrice(),
             plan.getDurationDays(),
             plan.getType() != null ? plan.getType().name() : null,
-            plan.getActive()
+            plan.getActive(),
+            discountPercent
         );
+    }
+
+    public static PlanResponseDto fromEntity(Plan plan) {
+        return fromEntity(plan, null);
     }
 }
