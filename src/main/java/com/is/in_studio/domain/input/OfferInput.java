@@ -13,7 +13,7 @@ public class OfferInput {
     @Min(1) @Max(100)
     private Integer discountPercent;
 
-    /** Bitmask: bit 0 = Mon … bit 6 = Sun. 0 or null = any day. */
+    /** Bitmask: bit 0 = Mon … bit 6 = Sun. 0 or null = no day filter. */
     private Integer daysOfWeek;
 
     private String startDate;

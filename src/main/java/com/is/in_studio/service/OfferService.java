@@ -71,10 +71,10 @@ public class OfferService {
 
     /**
      * Returns the best (highest discount) active offer for a plan at a given date and time.
-     * Checks: date range, day-of-week bitmask, and time window.
+     * If an offer has daysOfWeek set, matches against the day of the given date.
+     * If an offer has startDate/endDate set, the query already filters those.
      */
     public Optional<OfferResponseDto> validate(Integer planId, LocalDate date, LocalTime time) {
-        // bit 0 = Mon (DayOfWeek.MONDAY.getValue() = 1, so bit = 1 << 0 = 1)
         int dayBit = 1 << (date.getDayOfWeek().getValue() - 1);
         return offerRepository.findCandidateOffers(planId, date, time)
             .stream()

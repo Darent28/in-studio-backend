@@ -1,7 +1,6 @@
 package com.is.in_studio.domain.dto;
 
 import java.time.LocalDate;
-
 import com.is.in_studio.entity.Offer;
 
 public record OfferResponseDto(

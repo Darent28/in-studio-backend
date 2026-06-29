@@ -23,7 +23,7 @@ public class Offer implements Serializable {
     @Column(name = "discount_percent", nullable = false)
     private Integer discountPercent;
 
-    /** Bitmask: bit 0 = Mon, bit 1 = Tue, … bit 6 = Sun. 0 or null = any day. */
+    /** Bitmask: bit 0 = Mon, bit 1 = Tue, … bit 6 = Sun. 0 or null = no day filter. */
     @Column(name = "days_of_week")
     private Integer daysOfWeek;
 
