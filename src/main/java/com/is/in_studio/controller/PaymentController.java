@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import com.is.in_studio.auth.JwtUtil;
+import com.is.in_studio.domain.dto.CouponResponseDto;
 import com.is.in_studio.domain.dto.PaymentResponseDto;
 import com.is.in_studio.domain.input.PaymentInput;
 import com.is.in_studio.entity.Plan;
@@ -20,6 +21,7 @@ import com.is.in_studio.exception.CustomExceptions.NotFoundException;
 import com.is.in_studio.repository.OfferRepository;
 import com.is.in_studio.repository.PlanRepository;
 import com.is.in_studio.repository.UserRepository;
+import com.is.in_studio.service.CouponService;
 import com.is.in_studio.service.EmailService;
 import com.is.in_studio.service.PaymentService;
 import com.stripe.Stripe;
@@ -44,6 +46,7 @@ public class PaymentController {
     private final PlanRepository planRepository;
     private final UserRepository userRepository;
     private final OfferRepository offerRepository;
+    private final CouponService couponService;
     private final EmailService emailService;
 
     public PaymentController(JwtUtil jwtUtil,
@@ -51,12 +54,14 @@ public class PaymentController {
                              PlanRepository planRepository,
                              UserRepository userRepository,
                              OfferRepository offerRepository,
+                             CouponService couponService,
                              EmailService emailService) {
         this.jwtUtil = jwtUtil;
         this.paymentService = paymentService;
         this.planRepository = planRepository;
         this.userRepository = userRepository;
         this.offerRepository = offerRepository;
+        this.couponService = couponService;
         this.emailService = emailService;
     }
 
@@ -68,10 +73,10 @@ public class PaymentController {
     // ── Stripe payment ────────────────────────────────────────────────────────
 
     @PostMapping("/intent")
-    public Map<String, String> createIntent(@RequestBody Map<String, Integer> body,
+    public Map<String, String> createIntent(@RequestBody Map<String, Object> body,
                                              HttpServletRequest request) throws StripeException {
         Long userId = extractUserId(request);
-        Integer planId = body.get("planId");
+        Integer planId = ((Number) body.get("planId")).intValue();
 
         Plan plan = planRepository.findById(planId)
             .orElseThrow(() -> new NotFoundException("Plan not found: " + planId));
@@ -92,10 +97,30 @@ public class PaymentController {
             .findFirst();
 
         BigDecimal originalPrice = plan.getPrice();
-        BigDecimal finalPrice = offer
-            .map(o -> originalPrice.multiply(BigDecimal.valueOf(100 - o.getDiscountPercent()))
-                                   .divide(BigDecimal.valueOf(100)))
-            .orElse(originalPrice);
+
+        // Apply coupon if provided, otherwise fall back to offer discount
+        String couponCode = body.containsKey("couponCode") ? (String) body.get("couponCode") : null;
+        java.util.Optional<CouponResponseDto> coupon = (couponCode != null && !couponCode.isBlank())
+            ? couponService.validate(couponCode, planId)
+            : java.util.Optional.empty();
+
+        BigDecimal finalPrice;
+        int appliedDiscount = 0;
+        String discountSource = null;
+
+        if (coupon.isPresent()) {
+            appliedDiscount = coupon.get().discountPercent();
+            discountSource = "COUPON";
+            finalPrice = originalPrice.multiply(BigDecimal.valueOf(100 - appliedDiscount))
+                                      .divide(BigDecimal.valueOf(100));
+        } else if (offer.isPresent()) {
+            appliedDiscount = offer.get().getDiscountPercent();
+            discountSource = "OFFER";
+            finalPrice = originalPrice.multiply(BigDecimal.valueOf(100 - appliedDiscount))
+                                      .divide(BigDecimal.valueOf(100));
+        } else {
+            finalPrice = originalPrice;
+        }
 
         long amountCents = finalPrice.multiply(BigDecimal.valueOf(100)).longValue();
 
@@ -117,11 +142,12 @@ public class PaymentController {
         Map<String, String> response = new HashMap<>();
         response.put("clientSecret", intent.getClientSecret());
         response.put("paymentIntentId", intent.getId());
-        offer.ifPresent(o -> {
-            response.put("discountPercent", String.valueOf(o.getDiscountPercent()));
+        if (appliedDiscount > 0) {
+            response.put("discountPercent", String.valueOf(appliedDiscount));
+            response.put("discountSource", discountSource);
             response.put("originalPrice", originalPrice.toPlainString());
             response.put("finalPrice", finalPrice.toPlainString());
-        });
+        }
         return response;
     }
 
@@ -168,10 +194,20 @@ public class PaymentController {
                 ? com.is.in_studio.entity.Payment.PaymentMethod.CASH
                 : com.is.in_studio.entity.Payment.PaymentMethod.TRANSFER;
 
+        String couponCode = body.containsKey("couponCode") ? (String) body.get("couponCode") : null;
+        BigDecimal amount = plan.getPrice();
+        if (couponCode != null && !couponCode.isBlank()) {
+            var coupon = couponService.validate(couponCode, planId);
+            if (coupon.isPresent()) {
+                amount = amount.multiply(BigDecimal.valueOf(100 - coupon.get().discountPercent()))
+                               .divide(BigDecimal.valueOf(100));
+            }
+        }
+
         PaymentInput paymentInput = new PaymentInput();
         paymentInput.setUserId(userId);
         paymentInput.setPlanId(planId);
-        paymentInput.setAmount(plan.getPrice());
+        paymentInput.setAmount(amount);
         paymentInput.setCurrency("MXN");
         paymentInput.setMethod(method);
         var payment = paymentService.create(paymentInput);
