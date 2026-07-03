@@ -10,11 +10,15 @@ import org.springframework.stereotype.Service;
 import com.is.in_studio.domain.dto.CouponResponseDto;
 import com.is.in_studio.domain.input.CouponInput;
 import com.is.in_studio.entity.Coupon;
+import com.is.in_studio.entity.CouponUsage;
 import com.is.in_studio.entity.Plan;
+import com.is.in_studio.entity.User;
 import com.is.in_studio.exception.CustomExceptions.BadRequestException;
 import com.is.in_studio.exception.CustomExceptions.NotFoundException;
 import com.is.in_studio.repository.CouponRepository;
+import com.is.in_studio.repository.CouponUsageRepository;
 import com.is.in_studio.repository.PlanRepository;
+import com.is.in_studio.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -22,11 +26,18 @@ import jakarta.transaction.Transactional;
 public class CouponService {
 
     private final CouponRepository couponRepository;
+    private final CouponUsageRepository couponUsageRepository;
     private final PlanRepository planRepository;
+    private final UserRepository userRepository;
 
-    public CouponService(CouponRepository couponRepository, PlanRepository planRepository) {
+    public CouponService(CouponRepository couponRepository,
+                         CouponUsageRepository couponUsageRepository,
+                         PlanRepository planRepository,
+                         UserRepository userRepository) {
         this.couponRepository = couponRepository;
+        this.couponUsageRepository = couponUsageRepository;
         this.planRepository = planRepository;
+        this.userRepository = userRepository;
     }
 
     public List<CouponResponseDto> getAll() {
@@ -65,9 +76,13 @@ public class CouponService {
         couponRepository.deleteById(id);
     }
 
-    /** Returns a valid coupon for the given code and planId, or empty if not applicable. */
-    public Optional<CouponResponseDto> validate(String code, Integer planId) {
-        return couponRepository.findByCodeIgnoreCase(code)
+    /**
+     * Validates a coupon for the given plan and user.
+     * Throws BadRequestException if the user has already used this coupon.
+     * Returns empty if the coupon is not found, inactive, outside date range, or plan-scoped to another plan.
+     */
+    public Optional<CouponResponseDto> validate(String code, Integer planId, Long userId) {
+        Optional<Coupon> found = couponRepository.findByCodeIgnoreCase(code)
             .filter(c -> Boolean.TRUE.equals(c.getActive()))
             .filter(c -> {
                 LocalDate today = LocalDate.now();
@@ -75,8 +90,32 @@ public class CouponService {
                     && (c.getEndDate() == null || !today.isAfter(c.getEndDate()));
             })
             .filter(c -> c.getPlans().isEmpty()
-                || c.getPlans().stream().anyMatch(p -> p.getPlanId().equals(planId)))
-            .map(CouponResponseDto::fromEntity);
+                || c.getPlans().stream().anyMatch(p -> p.getPlanId().equals(planId)));
+
+        if (found.isEmpty()) return Optional.empty();
+
+        Coupon coupon = found.get();
+        if (userId != null && couponUsageRepository.existsByCouponCouponIdAndUserUserId(coupon.getCouponId(), userId)) {
+            throw new BadRequestException("You have already used this coupon.");
+        }
+
+        return Optional.of(CouponResponseDto.fromEntity(coupon));
+    }
+
+    /** Records that a user has used a coupon. Idempotent — silently ignores duplicate (unique constraint). */
+    @Transactional
+    public void recordUsage(Integer couponId, Long userId) {
+        if (couponUsageRepository.existsByCouponCouponIdAndUserUserId(couponId, userId)) return;
+
+        Coupon coupon = couponRepository.findById(couponId)
+            .orElseThrow(() -> new NotFoundException("Coupon not found: " + couponId));
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new NotFoundException("User not found: " + userId));
+
+        CouponUsage usage = new CouponUsage();
+        usage.setCoupon(coupon);
+        usage.setUser(user);
+        couponUsageRepository.save(usage);
     }
 
     private void applyInput(Coupon coupon, CouponInput input) {

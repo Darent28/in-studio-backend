@@ -101,7 +101,7 @@ public class PaymentController {
         // Apply coupon if provided, otherwise fall back to offer discount
         String couponCode = body.containsKey("couponCode") ? (String) body.get("couponCode") : null;
         java.util.Optional<CouponResponseDto> coupon = (couponCode != null && !couponCode.isBlank())
-            ? couponService.validate(couponCode, planId)
+            ? couponService.validate(couponCode, planId, userId)
             : java.util.Optional.empty();
 
         BigDecimal finalPrice;
@@ -124,7 +124,7 @@ public class PaymentController {
 
         long amountCents = finalPrice.multiply(BigDecimal.valueOf(100)).longValue();
 
-        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+        PaymentIntentCreateParams.Builder paramsBuilder = PaymentIntentCreateParams.builder()
             .setAmount(amountCents)
             .setCurrency("mxn")
             .setCustomer(customerId)
@@ -134,8 +134,11 @@ public class PaymentController {
                 PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
                     .setEnabled(true)
                     .build()
-            )
-            .build();
+            );
+        if (coupon.isPresent()) {
+            paramsBuilder.putMetadata("couponId", String.valueOf(coupon.get().couponId()));
+        }
+        PaymentIntentCreateParams params = paramsBuilder.build();
 
         PaymentIntent intent = PaymentIntent.create(params);
 
@@ -155,13 +158,19 @@ public class PaymentController {
 
     @PostMapping("/stripe/confirm")
     public PaymentResponseDto confirmStripePayment(@RequestBody Map<String, Object> body,
-                                                    HttpServletRequest request) {
+                                                    HttpServletRequest request) throws StripeException {
         Long userId = extractUserId(request);
         String paymentIntentId = (String) body.get("paymentIntentId");
         Integer planId = ((Number) body.get("planId")).intValue();
 
         Plan plan = planRepository.findById(planId)
             .orElseThrow(() -> new NotFoundException("Plan not found: " + planId));
+
+        PaymentIntent intent = PaymentIntent.retrieve(paymentIntentId);
+        String couponIdMeta = intent.getMetadata().get("couponId");
+        if (couponIdMeta != null) {
+            couponService.recordUsage(Integer.parseInt(couponIdMeta), userId);
+        }
 
         PaymentInput paymentInput = new PaymentInput();
         paymentInput.setUserId(userId);
@@ -196,9 +205,11 @@ public class PaymentController {
 
         String couponCode = body.containsKey("couponCode") ? (String) body.get("couponCode") : null;
         BigDecimal amount = plan.getPrice();
+        Integer appliedCouponId = null;
         if (couponCode != null && !couponCode.isBlank()) {
-            var coupon = couponService.validate(couponCode, planId);
+            var coupon = couponService.validate(couponCode, planId, userId);
             if (coupon.isPresent()) {
+                appliedCouponId = coupon.get().couponId();
                 amount = amount.multiply(BigDecimal.valueOf(100 - coupon.get().discountPercent()))
                                .divide(BigDecimal.valueOf(100));
             }
@@ -211,6 +222,10 @@ public class PaymentController {
         paymentInput.setCurrency("MXN");
         paymentInput.setMethod(method);
         var payment = paymentService.create(paymentInput);
+
+        if (appliedCouponId != null) {
+            couponService.recordUsage(appliedCouponId, userId);
+        }
 
         notifyAdmins(user, plan, rawMethod);
         return payment;

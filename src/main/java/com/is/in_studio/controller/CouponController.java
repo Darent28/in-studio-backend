@@ -6,19 +6,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.is.in_studio.auth.JwtUtil;
 import com.is.in_studio.domain.dto.CouponResponseDto;
 import com.is.in_studio.domain.input.CouponInput;
 import com.is.in_studio.service.CouponService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
 public class CouponController {
 
     private final CouponService couponService;
+    private final JwtUtil jwtUtil;
 
-    public CouponController(CouponService couponService) {
+    public CouponController(CouponService couponService, JwtUtil jwtUtil) {
         this.couponService = couponService;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping("/api/admin/coupons")
@@ -43,11 +47,18 @@ public class CouponController {
         couponService.delete(id);
     }
 
-    /** Validates whether a coupon code is applicable for a given plan. Requires auth. */
     @GetMapping("/api/coupons/validate")
-    public ResponseEntity<CouponResponseDto> validate(@RequestParam String code, @RequestParam Integer planId) {
-        return couponService.validate(code, planId)
+    public ResponseEntity<CouponResponseDto> validate(@RequestParam String code,
+                                                      @RequestParam Integer planId,
+                                                      HttpServletRequest request) {
+        Long userId = extractUserId(request);
+        return couponService.validate(code, planId, userId)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.noContent().build());
+    }
+
+    private Long extractUserId(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        return jwtUtil.extractUserId(header.substring(7));
     }
 }
