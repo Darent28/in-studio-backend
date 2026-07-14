@@ -34,7 +34,7 @@ public class CronController {
     }
 
     @DeleteMapping("/{secret}/expire-email-tokens")
-    public String purgeExpiredTokens(@PathVariable String secret) {
+    public String expireEmailTokens(@PathVariable String secret) {
         if (!cronSecret.equals(secret)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
