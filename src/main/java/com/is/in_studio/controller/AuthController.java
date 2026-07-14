@@ -61,10 +61,23 @@ public class AuthController {
         emailConfirmationService.confirmEmail(token);
         String html = """
             <!DOCTYPE html>
-            <html><body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h2 style="color: #4c66af;">Email Confirmed!</h2>
-            <p>Your email has been verified successfully. You can close this page and return to the app.</p>
-            </body></html>
+            <html>
+            <body style="margin:0;padding:0;background-color:#f3f0ff;font-family:Arial,sans-serif;">
+              <div style="max-width:480px;margin:60px auto;background:#ffffff;border-radius:12px;
+                          box-shadow:0 4px 20px rgba(109,40,217,0.12);padding:48px 40px;text-align:center;">
+                <div style="width:64px;height:64px;background:#7c3aed;border-radius:50%;
+                            margin:0 auto 24px;line-height:64px;font-size:32px;color:#ffffff;">
+                  &#10003;
+                </div>
+                <h2 style="color:#5b21b6;margin:0 0 12px;font-size:24px;">Email Confirmed!</h2>
+                <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 32px;">
+                  Your email has been verified successfully.<br>You can close this page and return to the app.
+                </p>
+                <div style="width:48px;height:3px;background:linear-gradient(90deg,#7c3aed,#a78bfa);
+                            border-radius:2px;margin:0 auto;"></div>
+              </div>
+            </body>
+            </html>
             """;
         return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(html);
     }
