@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.is.in_studio.domain.dto.AuthResponseDto;
 import com.is.in_studio.domain.input.LoginInput;
 import com.is.in_studio.domain.input.UserInput;
+import com.is.in_studio.entity.User;
+import com.is.in_studio.exception.CustomExceptions.ProcessServiceException;
+import com.is.in_studio.repository.UserRepository;
 import com.is.in_studio.service.AuthService;
 import com.is.in_studio.service.EmailConfirmationService;
 
@@ -25,10 +28,13 @@ public class AuthController {
 
     private final AuthService authService;
     private final EmailConfirmationService emailConfirmationService;
+    private final UserRepository userRepository;
 
-    public AuthController(AuthService authService, EmailConfirmationService emailConfirmationService) {
+    public AuthController(AuthService authService, EmailConfirmationService emailConfirmationService,
+                          UserRepository userRepository) {
         this.authService = authService;
         this.emailConfirmationService = emailConfirmationService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/login")
@@ -40,6 +46,14 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public AuthResponseDto register(@Valid @RequestBody UserInput input) {
         return authService.register(input);
+    }
+
+    @PostMapping("/resend-confirmation")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void resendConfirmation(@RequestParam String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new ProcessServiceException("No account found with that email."));
+        emailConfirmationService.sendConfirmationEmail(user);
     }
 
     @GetMapping("/confirm-email")
