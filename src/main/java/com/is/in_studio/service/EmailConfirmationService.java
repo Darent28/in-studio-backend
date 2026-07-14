@@ -38,6 +38,11 @@ public class EmailConfirmationService {
     }
 
     @Transactional
+    public int purgeExpiredTokens() {
+        return tokenRepository.deleteAllExpiredBefore(Instant.now());
+    }
+
+    @Transactional
     public int processUnverifiedUsers() {
         List<User> unverified = userRepository.findUnverifiedActiveUsers();
         int sent = 0;
