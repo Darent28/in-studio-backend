@@ -41,4 +41,13 @@ public class CronController {
         int deleted = emailConfirmationService.purgeExpiredTokens();
         return "deleted " + deleted;
     }
+
+    @GetMapping("/{secret}/expire-memberships-report")
+    public String expireMembershipsReport(@PathVariable String secret) {
+        if (!cronSecret.equals(secret)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        membershipExpirationService.expireAndReport();
+        return "ok";
+    }
 }

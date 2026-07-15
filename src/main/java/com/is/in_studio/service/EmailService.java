@@ -1,5 +1,6 @@
 package com.is.in_studio.service;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +30,30 @@ public class EmailService {
             "to", List.of(to),
             "subject", subject,
             "html", htmlBody
+        );
+
+        restClient.post()
+            .uri("/emails")
+            .header("Authorization", "Bearer " + apiKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(payload)
+            .retrieve()
+            .toBodilessEntity();
+    }
+
+    public void sendHtmlEmailWithAttachment(String to, String subject, String htmlBody,
+                                             String filename, byte[] fileContent) {
+        Map<String, Object> attachment = Map.of(
+            "filename", filename,
+            "content", Base64.getEncoder().encodeToString(fileContent)
+        );
+
+        Map<String, Object> payload = Map.of(
+            "from", fromAddress,
+            "to", List.of(to),
+            "subject", subject,
+            "html", htmlBody,
+            "attachments", List.of(attachment)
         );
 
         restClient.post()
