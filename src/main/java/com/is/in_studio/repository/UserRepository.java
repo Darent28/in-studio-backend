@@ -29,6 +29,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE User u SET u.emailVerified = true WHERE u.userId = :id")
     void markEmailVerified(Long id);
 
+    @Modifying
+    @Query("UPDATE User u SET u.passwordHash = :hash WHERE u.userId = :id")
+    void updatePassword(@Param("id") Long id, @Param("hash") String hash);
+
     @Query("SELECT u FROM User u WHERE " +
            "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
            "LOWER(u.lastName)  LIKE LOWER(CONCAT('%', :q, '%')) OR " +

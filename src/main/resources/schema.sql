@@ -241,6 +241,25 @@ CREATE TRIGGER trg_user_updated_at
     EXECUTE FUNCTION trg_set_updated_at();;
 
 -- ============================================================
+-- TABLE: password_reset_token
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS password_reset_token (
+    id              BIGINT          GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    token           VARCHAR(255)    NOT NULL UNIQUE,
+    user_id         BIGINT          NOT NULL REFERENCES "user" (user_id)
+                                        ON DELETE CASCADE,
+    expires_at      TIMESTAMPTZ     NOT NULL,
+    used            BOOLEAN         NOT NULL DEFAULT FALSE,
+    created_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+);;
+
+COMMENT ON TABLE password_reset_token IS 'One-time tokens for password reset flow';;
+
+CREATE INDEX IF NOT EXISTS idx_prt_token   ON password_reset_token (token);;
+CREATE INDEX IF NOT EXISTS idx_prt_user_id ON password_reset_token (user_id);;
+
+-- ============================================================
 -- TABLE: offer
 -- ============================================================
 
