@@ -20,11 +20,12 @@ import com.is.in_studio.repository.MembershipRepository;
 public class MembershipExpirationService {
 
     private static final Logger log = LoggerFactory.getLogger(MembershipExpirationService.class);
-    private static final String REPORT_RECIPIENT = "darentramdom@gmail.com";
-
     private final MembershipRepository membershipRepository;
     private final ExcelReportService excelReportService;
     private final EmailService emailService;
+
+    @org.springframework.beans.factory.annotation.Value("${resend.report-recipient}")
+    private String reportRecipient;
 
     public MembershipExpirationService(MembershipRepository membershipRepository,
                                         ExcelReportService excelReportService,
@@ -76,10 +77,10 @@ public class MembershipExpirationService {
             """.formatted(monthName, ym.getYear(), expired.size());
 
         try {
-            emailService.sendHtmlEmailWithAttachment(REPORT_RECIPIENT,
+            emailService.sendHtmlEmailWithAttachment(reportRecipient,
                 "Expired Memberships Report — " + monthName + " " + ym.getYear(),
                 html, filename, xlsx);
-            log.info("Sent expired memberships report ({} rows) to {}", expired.size(), REPORT_RECIPIENT);
+            log.info("Sent expired memberships report ({} rows) to {}", expired.size(), reportRecipient);
         } catch (Exception e) {
             log.error("Failed to send expired memberships report email", e);
         }
