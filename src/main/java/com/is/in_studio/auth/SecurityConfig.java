@@ -1,10 +1,7 @@
 package com.is.in_studio.auth;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,9 +31,6 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
-    @Value("${cors.allowed-origins:http://localhost:3000, http://localhost:8081, https://in-studio-admin-production.up.railway.app, https://in-studio-backend-production.up.railway.app}")
-    private String allowedOrigins;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -58,13 +52,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        List<String> origins = new ArrayList<>(Arrays.stream(allowedOrigins.split(","))
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .toList());
-        if (!origins.contains("http://localhost:3000")) origins.add("http://localhost:3000");
-        if (!origins.contains("http://localhost:5173")) origins.add("http://localhost:5173");
-        config.setAllowedOrigins(origins);
+        // allowedOriginPatterns supports wildcard while still allowing credentials,
+        // which setAllowedOrigins("*") cannot do (causes 403 for unrecognised origins).
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
