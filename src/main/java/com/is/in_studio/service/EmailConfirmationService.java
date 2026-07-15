@@ -83,16 +83,12 @@ public class EmailConfirmationService {
         EmailConfirmationToken token = tokenRepository.findByToken(tokenValue)
             .orElseThrow(() -> new ProcessServiceException("Invalid confirmation token."));
 
-        if (token.getUsed()) {
-            throw new ProcessServiceException("This confirmation link has already been used.");
-        }
         if (token.getExpiresAt().isBefore(Instant.now())) {
             throw new ProcessServiceException("This confirmation link has expired.");
         }
 
         userRepository.markEmailVerified(token.getUser().getUserId());
-        token.setUsed(true);
-        tokenRepository.save(token);
+        tokenRepository.delete(token);
     }
 
     private String buildConfirmationHtml(String firstName, String confirmUrl) {

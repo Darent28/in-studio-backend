@@ -98,8 +98,7 @@ public class PasswordResetService {
         }
 
         userRepository.updatePassword(token.getUser().getUserId(), passwordEncoder.encode(newPassword));
-        token.setUsed(true);
-        tokenRepository.save(token);
+        tokenRepository.delete(token);
     }
 
     private String buildResetEmailHtml(String firstName, String resetUrl) {
