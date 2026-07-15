@@ -44,6 +44,11 @@ public class PasswordResetService {
     }
 
     @Transactional
+    public int purgeExpiredTokens() {
+        return tokenRepository.deleteAllExpiredBefore(Instant.now());
+    }
+
+    @Transactional
     public void sendResetEmail(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) {
