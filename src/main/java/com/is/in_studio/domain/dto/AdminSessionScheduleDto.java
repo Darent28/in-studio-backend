@@ -22,6 +22,7 @@ public record AdminSessionScheduleDto(
         String firstName,
         String lastName,
         String email,
-        String status
+        String status,
+        String spotNumber
     ) {}
 }

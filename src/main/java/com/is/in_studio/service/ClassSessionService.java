@@ -122,7 +122,8 @@ public class ClassSessionService {
                         r.getUser().getFirstName(),
                         r.getUser().getLastName(),
                         r.getUser().getEmail(),
-                        r.getStatus()
+                        r.getStatus(),
+                        r.getSpotNumber()
                     ))
                     .toList();
                 return new AdminSessionScheduleDto(
