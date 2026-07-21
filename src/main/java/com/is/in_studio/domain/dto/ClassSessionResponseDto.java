@@ -23,7 +23,10 @@ public record ClassSessionResponseDto(
     String title,
     String status,
     String notes,
-    OffsetDateTime createdAt
+    OffsetDateTime createdAt,
+    Integer layoutRows,
+    Integer layoutCols,
+    String layoutData
 ) {
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
@@ -44,7 +47,10 @@ public record ClassSessionResponseDto(
             s.getTitle(),
             s.getStatus() != null ? s.getStatus().name() : null,
             s.getNotes(),
-            s.getCreatedAt()
+            s.getCreatedAt(),
+            s.getRoom().getLayoutRows(),
+            s.getRoom().getLayoutCols(),
+            s.getRoom().getLayoutData()
         );
     }
 

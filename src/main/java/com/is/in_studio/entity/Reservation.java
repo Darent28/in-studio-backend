@@ -36,6 +36,9 @@ public class Reservation implements Serializable {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
+    @Column(name = "spot_number", length = 10)
+    private String spotNumber;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
@@ -63,6 +66,9 @@ public class Reservation implements Serializable {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getSpotNumber() { return spotNumber; }
+    public void setSpotNumber(String spotNumber) { this.spotNumber = spotNumber; }
 
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }

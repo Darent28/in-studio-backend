@@ -41,7 +41,7 @@ public class ReservationService {
     }
 
     @Transactional
-    public ReservationResponseDto book(Long userId, Long sessionId, LocalDate sessionDate) {
+    public ReservationResponseDto book(Long userId, Long sessionId, LocalDate sessionDate, String spotNumber) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new NotFoundException("User not found: " + userId));
         ClassSession session = sessionRepository.findById(sessionId)
@@ -69,8 +69,19 @@ public class ReservationService {
                 return r;
             });
         reservation.setMembership(null);
+        reservation.setSpotNumber(null);
 
         if (reservedCount < capacity) {
+            if (spotNumber != null && !spotNumber.isBlank()) {
+                String layoutData = session.getRoom().getLayoutData();
+                if (layoutData != null && !layoutData.contains("\"" + spotNumber + "\"")) {
+                    throw new BadRequestException("Spot " + spotNumber + " is not valid for this room");
+                }
+                if (reservationRepository.isSpotTaken(sessionId, sessionDate, spotNumber)) {
+                    throw new BadRequestException("Spot " + spotNumber + " is already taken");
+                }
+                reservation.setSpotNumber(spotNumber);
+            }
             Membership membership = membershipRepository.findByUser_UserId(userId).stream()
                 .filter(m -> m.getStatus() == MembershipStatus.ACTIVE && m.getCreditsLeft() > 0)
                 .findFirst()
@@ -89,6 +100,10 @@ public class ReservationService {
 
         reservationRepository.save(reservation);
         return ReservationResponseDto.fromEntity(reservation, reservedCount, onHoldCount);
+    }
+
+    public List<String> getOccupiedSpots(Long sessionId, LocalDate date) {
+        return reservationRepository.findOccupiedSpots(sessionId, date);
     }
 
     @Transactional

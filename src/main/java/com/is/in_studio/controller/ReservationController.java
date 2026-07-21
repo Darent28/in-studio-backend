@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +37,17 @@ public class ReservationController {
         Long sessionId = ((Number) body.get("sessionId")).longValue();
         String dateStr = (String) body.get("sessionDate");
         LocalDate sessionDate = LocalDate.parse(dateStr);
-        return reservationService.book(userId, sessionId, sessionDate);
+        String spotNumber = (String) body.get("spotNumber");
+        return reservationService.book(userId, sessionId, sessionDate, spotNumber);
+    }
+
+    @GetMapping("/spots")
+    public List<String> getOccupiedSpots(
+            @RequestParam Long sessionId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            HttpServletRequest request) {
+        extractUserId(request);
+        return reservationService.getOccupiedSpots(sessionId, date);
     }
 
     @DeleteMapping("/{id}")

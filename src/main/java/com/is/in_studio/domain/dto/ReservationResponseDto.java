@@ -20,7 +20,8 @@ public record ReservationResponseDto(
     int capacity,
     long reservedCount,
     long onHoldCount,
-    OffsetDateTime createdAt
+    OffsetDateTime createdAt,
+    String spotNumber
 ) {
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -40,7 +41,8 @@ public record ReservationResponseDto(
             s.getRoom().getCapacity(),
             reservedCount,
             onHoldCount,
-            r.getCreatedAt()
+            r.getCreatedAt(),
+            r.getSpotNumber()
         );
     }
 }

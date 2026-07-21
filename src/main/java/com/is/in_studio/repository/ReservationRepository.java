@@ -35,6 +35,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.session.sessionId = :sessionId AND r.sessionDate = :date AND r.status != 'CANCELLED' ORDER BY r.createdAt ASC")
     List<Reservation> findActiveBySessionAndDate(@Param("sessionId") Long sessionId, @Param("date") LocalDate date);
 
+    @Query("SELECT r.spotNumber FROM Reservation r WHERE r.session.sessionId = :sessionId AND r.sessionDate = :date AND r.status != 'CANCELLED' AND r.spotNumber IS NOT NULL")
+    List<String> findOccupiedSpots(@Param("sessionId") Long sessionId, @Param("date") LocalDate date);
+
+    @Query("SELECT COUNT(r) > 0 FROM Reservation r WHERE r.session.sessionId = :sessionId AND r.sessionDate = :date AND r.spotNumber = :spot AND r.status != 'CANCELLED'")
+    boolean isSpotTaken(@Param("sessionId") Long sessionId, @Param("date") LocalDate date, @Param("spot") String spot);
+
     @Query("SELECT r.user.userId, r.user.firstName, r.user.lastName, r.user.email, COUNT(r) FROM Reservation r WHERE r.status = 'RESERVED' GROUP BY r.user.userId, r.user.firstName, r.user.lastName, r.user.email ORDER BY COUNT(r) DESC")
     List<Object[]> findTopAttendees(org.springframework.data.domain.Pageable pageable);
 }
